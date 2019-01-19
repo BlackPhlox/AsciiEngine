@@ -46,6 +46,7 @@ class Player{
     translate(pos.x-width/2+100,pos.y-height/2+100);
     pushMatrix();
     translate((-posGrid.x*mapGridSize),(-posGrid.y*mapGridSize));
+    fill(255,50);
     for(Tile t : world.tiles){
       rect(t.x*mapGridSize,t.y*mapGridSize,mapGridSize,mapGridSize);
     }

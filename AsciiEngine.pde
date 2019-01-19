@@ -47,7 +47,7 @@ void draw(){
   translate(-pp.x+width/2, -pp.y+height/2);
   scale(scl);
   
-  
+  world.displayBackground();
   player.display();
   displayParticles();
   world.displayForeground();
@@ -103,9 +103,13 @@ void displayParticles(){
 
 void inputMouse(){
   if(mousePressed){
-    float sz = 8;//random(4, 8);
+    float sz = 2;//random(4, 8);
     Vec2 pp = box2d.getBodyPixelCoord(player.body);
-    particles.add(new Particle(pp.x, pp.y,new Vec2(player.mouseDirection.x,player.mouseDirection.y*-1), sz));
+    PVector p2 = PVector.add(new PVector(pp.x,pp.y),player.mouseDirection.normalize());
+    float ran = random(100,120);
+    player.mouseDirection.setMag(ran);
+    boolean isBullet = true;
+    particles.add(new Particle(p2.x,p2.y,new Vec2(player.mouseDirection.x*0.5,player.mouseDirection.y*-1*0.5), sz, isBullet));
   }
 }
 
@@ -150,7 +154,6 @@ void createWorld(){
 
 //PHYSICS
 // Collision event functions!
-int count = 0;
 void beginContact(Contact cp) {
   // Get both fixtures
   Fixture f1 = cp.getFixtureA();
@@ -162,14 +165,19 @@ void beginContact(Contact cp) {
   // Get our objects that reference these bodies
   Object o1 = b1.getUserData();
   Object o2 = b2.getUserData();
-  
-  println("Hit " + count++);
 
   if (o1.getClass() == Wall.class && o2.getClass() == Player.class) {
     Wall p1 = (Wall) o1;
     //p1.change();
     Player p2 = (Player) o2;
     p2.body.setLinearVelocity(new Vec2());
+    //p2.change();
+  } else if (o1.getClass() == Wall.class && o2.getClass() == Particle.class) {
+    Wall p1 = (Wall) o1;
+    //p1.change();
+    Particle p2 = (Particle) o2;
+    p2.incCollision();
+    p2.body.setLinearDamping(5);
     //p2.change();
   }
 

@@ -1,4 +1,0 @@
-enum DrawType{
-  BOX,
-  SQUARE
-}

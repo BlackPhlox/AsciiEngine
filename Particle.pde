@@ -4,21 +4,33 @@ class Particle {
   float r;
   color col;
   
-  long life;
+  long lifeStart;
+  int collisions;
+  float minVelocity = 5;
+  
+  boolean isBullet;
 
-  Particle(float x, float y, Vec2 direction, float r_) {
+  Particle(float x, float y, Vec2 direction, float r_, boolean isBullet) {
     r = r_;
-    // This function puts the particle in the Box2d world
+    if(r <= 1){
+      println("Particle not visible due to a too small radius");
+    }
+    this.isBullet = isBullet;
+    if(isBullet) r = 1;
     makeBody(x, y, r);
     body.setLinearVelocity(direction);
     body.setUserData(this);
     col = color(175);
-    life = millis();
+    lifeStart = millis();
   }
 
   // This function removes the particle from the box2d world
   void killBody() {
     box2d.destroyBody(body);
+  }
+  
+  void incCollision(){
+    collisions++;
   }
 
   // Change color when hit
@@ -31,7 +43,17 @@ class Particle {
     // Let's find the screen position of the particle
     Vec2 pos = box2d.getBodyPixelCoord(body);
     // Is it off the bottom of the screen?
-    if(millis() - life > 3000){
+    
+    Vec2 lv = body.getLinearVelocity();
+    if(new PVector(lv.x,lv.y).mag() < minVelocity){
+      killBody();
+      return true;
+    }
+    if(collisions > 3){
+      killBody();
+      return true;
+    }
+    if(millis() - lifeStart > 3000){
       killBody();
       return true;
     }
@@ -43,22 +65,34 @@ class Particle {
   }
 
 
-  // 
+  Vec2 pos;
+  Vec2 prePos;
   void display() {
+    
+    if(isBullet && pos!=null && frameCount % 2 == 0){
+      prePos = pos;
+    }
+
     // We look at each body and get its screen position
-    Vec2 pos = box2d.getBodyPixelCoord(body);
+    pos = box2d.getBodyPixelCoord(body);
     // Get its angle of rotation
-    float a = body.getAngle();
-    pushMatrix();
-    translate(pos.x, pos.y);
-    rotate(a);
-    fill(col);
-    stroke(0);
-    strokeWeight(1);
-    ellipse(0, 0, r*2, r*2);
-    // Let's add a line so we can see the rotation
-    line(0, 0, r, 0);
-    popMatrix();
+    
+    if(isBullet){
+      stroke(255);
+      if(prePos != null) line(pos.x,pos.y,prePos.x, prePos.y);
+    } else {
+      float a = body.getAngle();
+      pushMatrix();
+      translate(pos.x, pos.y);
+      rotate(a);
+      fill(col);
+      stroke(0);
+      strokeWeight(1);
+      ellipse(0, 0, r*2, r*2);
+      // Let's add a line so we can see the rotation
+      line(0,0,r,0);
+      popMatrix();
+    }
   }
 
   // Here's our function that adds the particle to the Box2D world
@@ -80,6 +114,10 @@ class Particle {
     fd.density = 1;
     fd.friction = 0.01;
     fd.restitution = 0.3;
+    
+    //also set continues collision check
+    //body.setBullet(true);
+    //raycast?
 
     // Attach fixture to body
     body.createFixture(fd);

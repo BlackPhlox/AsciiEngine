@@ -26,6 +26,10 @@ class World{
     }
   }
   
+  void displayBackground(){
+  
+  }
+  
   void displayForeground(){
     fill(255);
     for(Tile t : tiles){
