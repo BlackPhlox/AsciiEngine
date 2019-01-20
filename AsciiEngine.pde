@@ -20,7 +20,7 @@ void setup(){
   setupPhysics();
   world = new World(12,35,35);
   createWorld();
-  player = new Player(100,100);
+  player = new Player(100,100,5);
   textSize(12);
 }
 
@@ -40,23 +40,34 @@ void draw(){
   inputMouse();
   background(0);
   box2d.step();
+  Vec2 pp = box2d.getBodyPixelCoord(player.body);
   
   //WORLD
   pushMatrix();
-  Vec2 pp = box2d.getBodyPixelCoord(player.body);
-  translate(-pp.x+width/2, -pp.y+height/2);
+  
+  translate(-(width * (scl - 1) / 2),-(height * (scl - 1) / 2));
   scale(scl);
   
+  pushMatrix();
+  
+  translate(-pp.x+width/2, -pp.y+height/2);
+   
   world.displayBackground();
   player.display();
   displayParticles();
   world.displayForeground();
   
   popMatrix();
+  popMatrix();
   
   //FOREGROUND
+  if(player.showMap) player.displayMiniMap();
   drawInfo();
 }
+
+//1.1 520 520 width-80
+//1.2 460 460 width-140
+//1.3 400 400 width-200
 
 void keyPressed(){
   if (key == '+') scl += 0.1;

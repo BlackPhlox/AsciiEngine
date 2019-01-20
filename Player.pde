@@ -1,57 +1,50 @@
 class Player{
   boolean showMap = false;
   PVector mouseDirection;
-  Player(int x, int y){
+  int r;
+  Player(int x, int y, int r){
+    this.r = r;
     setupPhysics(x,y);
   }
   
   Body body;
   void setupPhysics(int x, int y){
-    makeBody(x, y, 10);
+    makeBody(x, y, r);
     body.setUserData(this);
   }
   
   void display() {
-    // We look at each body and get its screen position
-    fill(100);
-    //body.setTransform(new Vec2(pos.x,pos.y*-1),0.1);
     Vec2 pos = box2d.getBodyPixelCoord(body);
-    // Get its angle of rotation
-    float a = body.getAngle();
     pushMatrix();
-    translate(pos.x, pos.y);
-    rotate(a);
-    stroke(0);
-    strokeWeight(1);
-    ellipse(0, 0, 10*2, 10*2);
-    // Let's add a line so we can see the rotation
-    line(0, 0, 10, 0);
-    pushMatrix();
-    //Calc mouseDirection
-    mouseDirection = PVector.sub(new PVector(mouseX,mouseY),new PVector(width/2,height/2));
-    rotate(mouseDirection.heading());
-    ellipse(0, 0, 10, 10);
-    line(0, 0, 5, 0);
+      fill(100);
+      translate(pos.x, pos.y);
+      stroke(0);
+      strokeWeight(1);
+      //Calc mouseDirection
+      mouseDirection = PVector.sub(new PVector(mouseX,mouseY),new PVector(width/2,height/2));
+      rotate(mouseDirection.heading());
+      fill(255);
+      ellipse(0, 0, r*2, r*2);
+      line(0, 0, r, 0);
     popMatrix();
-    popMatrix();
-    if(showMap) drawMiniMap();
   }
   
   int mapGridSize = 5;
-  void drawMiniMap(){
+  void displayMiniMap(){
     Vec2 pos = box2d.getBodyPixelCoord(body);
     Vec2 posGrid = toGrid(pos,world.gridSize);
+    pushMatrix();
     pushStyle();
-    pushMatrix();
-    translate(pos.x-width/2+100,pos.y-height/2+100);
-    pushMatrix();
-    translate((-posGrid.x*mapGridSize),(-posGrid.y*mapGridSize));
-    fill(255,50);
-    for(Tile t : world.tiles){
-      rect(t.x*mapGridSize,t.y*mapGridSize,mapGridSize,mapGridSize);
-    }
-    popMatrix();
-    rect(0,0,mapGridSize,mapGridSize);
+    stroke(0);
+      translate(100,100);
+        pushMatrix();
+        translate((-posGrid.x*mapGridSize),(-posGrid.y*mapGridSize));
+        fill(255,50);
+        for(Tile t : world.tiles){
+          rect(t.x*mapGridSize,t.y*mapGridSize,mapGridSize,mapGridSize);
+        }
+        popMatrix();
+      rect(0,0,mapGridSize,mapGridSize);
     popStyle();
     popMatrix();
   }

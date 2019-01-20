@@ -2,7 +2,6 @@ class World{
   int w,h;
   int gridSize;
   int depth = 30;
-  int layers = 5;
   
   boolean showGrid;
   boolean showLine;
@@ -27,7 +26,7 @@ class World{
   }
   
   void displayBackground(){
-  
+    //depth = mouseX;
   }
   
   void displayForeground(){

@@ -83,7 +83,7 @@ class TilePainter{
         }     
      } else {
        for(int i = min; i < max; i++){
-         fill(255,map(i,0,world.layers,255,0));
+         fill(255,map(i,0,world.depth,255,0));
          drawTextOffset(s,map(i,0,world.depth,0,p.x),map(i,0,world.depth,0,p.y));
        }  
      }
