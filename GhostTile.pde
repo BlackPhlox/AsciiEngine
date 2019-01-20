@@ -6,10 +6,7 @@ class GhostTile extends Tile{
   }
   
   void display(){
-    pushStyle();
-    fill(255,20);
     TilePainter sp = new TilePainter(world);
     sp.drawTile(tileType,x,y);
-    popStyle();
   }
 }

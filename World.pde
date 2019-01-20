@@ -1,7 +1,7 @@
 class World{
   int w,h;
   int gridSize;
-  int depth = 30;
+  int layers = 15;
   
   boolean showGrid;
   boolean showLine;
@@ -11,8 +11,8 @@ class World{
     this.w = w;
     this.h = h;
     this.gridSize = gridSize;
+    textSize(gridSize);
     tiles = new HashSet<Tile>();
-    stroke(255);
     for(int y = 0; y < h; y++){
       for(int x = 0; x < w; x++){
         new GhostTile(this,TileType.FLOOR,x,y);
@@ -26,11 +26,10 @@ class World{
   }
   
   void displayBackground(){
-    //depth = mouseX;
+    //layers = mouseX;
   }
   
   void displayForeground(){
-    fill(255);
     for(Tile t : tiles){
       t.display();
     }

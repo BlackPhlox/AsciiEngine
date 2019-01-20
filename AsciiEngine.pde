@@ -21,7 +21,7 @@ void setup(){
   world = new World(12,35,35);
   createWorld();
   player = new Player(100,100,5);
-  textSize(12);
+  smooth(1);
 }
 
 void setupPhysics(){
@@ -36,38 +36,35 @@ void setupPhysics(){
 float scl = 1;
 void draw(){
   //BACKEND-BACKGROUND
+  pushMatrix();
   inputMovement();
   inputMouse();
-  background(0);
+  
   box2d.step();
-  Vec2 pp = box2d.getBodyPixelCoord(player.body);
   
-  //WORLD
-  pushMatrix();
-  
-  translate(-(width * (scl - 1) / 2),-(height * (scl - 1) / 2));
-  scale(scl);
-  
-  pushMatrix();
-  
-  translate(-pp.x+width/2, -pp.y+height/2);
-   
-  world.displayBackground();
-  player.display();
-  displayParticles();
-  world.displayForeground();
-  
+  drawWorld();
+
   popMatrix();
-  popMatrix();
-  
   //FOREGROUND
   if(player.showMap) player.displayMiniMap();
   drawInfo();
 }
 
-//1.1 520 520 width-80
-//1.2 460 460 width-140
-//1.3 400 400 width-200
+void drawWorld(){
+  background(0);
+  Vec2 pp = box2d.getBodyPixelCoord(player.body);
+  pushMatrix();
+    translate(-(width * (scl - 1) / 2),-(height * (scl - 1) / 2));
+    scale(scl);
+    pushMatrix();
+      translate(-pp.x+width/2, -pp.y+height/2);
+      world.displayBackground();
+      player.display();
+      displayParticles();
+      world.displayForeground();
+    popMatrix();
+  popMatrix();
+}
 
 void keyPressed(){
   if (key == '+') scl += 0.1;
@@ -112,16 +109,36 @@ void displayParticles(){
   }
 }
 
+float zoom;
+float maxZoom = 50;
+float zoomInSpeed = 0.05;
+float zoomOutSpeed = 0.2;
 void inputMouse(){
   if(mousePressed){
+    
     float sz = 2;//random(4, 8);
     Vec2 pp = box2d.getBodyPixelCoord(player.body);
-    PVector p2 = PVector.add(new PVector(pp.x,pp.y),player.mouseDirection.normalize());
+    PVector normMouseDirection = player.mouseDirection;
+    normMouseDirection.normalize();
+    PVector p2 = PVector.add(new PVector(pp.x,pp.y),normMouseDirection);
+    
+    zoom = lerp(zoom,maxZoom,zoomInSpeed);
+    player.mouseDirection.setMag(zoom);
+    translate(player.mouseDirection.x*-1,player.mouseDirection.y*-1);
+    
     float ran = random(100,120);
     player.mouseDirection.setMag(ran);
+    
     boolean isBullet = true;
-    particles.add(new Particle(p2.x,p2.y,new Vec2(player.mouseDirection.x*0.5,player.mouseDirection.y*-1*0.5), sz, isBullet));
+    particles.add(new Particle(p2.x,p2.y,new Vec2(normMouseDirection.x*0.5,normMouseDirection.y*-1*0.5), sz, isBullet));
+  } else {
+    if(player.mouseDirection != null){
+      player.mouseDirection.setMag(zoom);
+      translate(player.mouseDirection.x*-1,player.mouseDirection.y*-1);
+    }
+    zoom = lerp(zoom,0,zoomOutSpeed);
   }
+  
 }
 
 boolean showCenter = false;

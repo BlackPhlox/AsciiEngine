@@ -113,7 +113,7 @@ class Particle {
     // Parameters that affect physics
     fd.density = 1;
     fd.friction = 0.01;
-    fd.restitution = 0.3;
+    fd.restitution = 0.3; //Bounciness on walls
     
     //also set continues collision check
     //body.setBullet(true);
@@ -122,6 +122,7 @@ class Particle {
     // Attach fixture to body
     body.createFixture(fd);
 
-    body.setAngularVelocity(random(-10, 10));
+    //beanbag/ rubber ball
+    //body.setAngularVelocity(random(-10, 10));
   }
 }
