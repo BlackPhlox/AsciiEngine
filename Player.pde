@@ -1,15 +1,27 @@
 class Player{
   boolean showMap = false;
   PVector mouseDirection;
-  int r;
+  int radius;
+  
+  //Movement
+  public double stamina,
+            maxStamina = 100,
+            restitutionRate = 1,
+            fatigueRate = 2,
+            fatigueMult = 1,
+            recoverRate = 100,
+            totalWeight = 5;
+  private double walkSpeed = 2, walkSpeedMult = 1,
+          runningSpeed = 3, runningSpeedMult = 1;
+            
   Player(int x, int y, int r){
-    this.r = r;
+    this.radius = r;
     setupPhysics(x,y);
   }
   
   Body body;
   void setupPhysics(int x, int y){
-    makeBody(x, y, r);
+    makeBody(x, y, radius);
     body.setUserData(this);
   }
   
@@ -24,12 +36,12 @@ class Player{
       mouseDirection = PVector.sub(new PVector(mouseX,mouseY),new PVector(width/2,height/2));
       rotate(mouseDirection.heading());
       fill(255);
-      ellipse(0, 0, r*2, r*2);
-      line(0, 0, r, 0);
+      ellipse(0, 0, radius*2, radius*2);
+      line(0, 0, radius, 0);
     popMatrix();
   }
   
-  int mapGridSize = 5;
+  int miniMapGridSize = 5;
   void displayMiniMap(){
     Vec2 pos = box2d.getBodyPixelCoord(body);
     Vec2 posGrid = toGrid(pos,world.gridSize);
@@ -38,13 +50,13 @@ class Player{
     stroke(0);
       translate(100,100);
         pushMatrix();
-        translate((-posGrid.x*mapGridSize),(-posGrid.y*mapGridSize));
+        translate((-posGrid.x*miniMapGridSize),(-posGrid.y*miniMapGridSize));
         fill(255,50);
         for(Tile t : world.tiles){
-          rect(t.x*mapGridSize,t.y*mapGridSize,mapGridSize,mapGridSize);
+          rect(t.x*miniMapGridSize,t.y*miniMapGridSize,miniMapGridSize,miniMapGridSize);
         }
         popMatrix();
-      rect(0,0,mapGridSize,mapGridSize);
+      rect(0,0,miniMapGridSize,miniMapGridSize);
     popStyle();
     popMatrix();
   }

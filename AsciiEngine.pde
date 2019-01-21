@@ -8,6 +8,8 @@ import org.jbox2d.common.*;
 import org.jbox2d.dynamics.*;
 import org.jbox2d.dynamics.contacts.*;
 
+import javafx.animation.AnimationTimer;
+
 Box2DProcessing box2d;
 public static Player player;
 World world;
@@ -22,7 +24,11 @@ void setup(){
   createWorld();
   player = new Player(100,100,5);
   smooth(1);
+  
 }
+
+private boolean goNorth,goSouth,goEast,goWest,running;
+public static double penalty;
 
 void setupPhysics(){
   // Initialize box2d physics and create the world
@@ -70,6 +76,31 @@ void keyPressed(){
   if (key == '+') scl += 0.1;
   if (key == '-') scl -= 0.1;
   if (key == 'm' || key == 'M') player.showMap = !player.showMap;
+  setPressedKeys(true);
+}
+
+void keyReleased(){
+  setPressedKeys(false);
+}
+
+void setPressedKeys(boolean b){
+  switch (key) {
+    case 'W':     goNorth = b; break;
+    case 'w':     goNorth = b; break;
+    case 'S':     goSouth = b; break;
+    case 's':     goSouth = b; break;
+    case 'A':     goWest  = b; break;
+    case 'a':     goWest  = b; break;
+    case 'D':     goEast  = b; break;
+    case 'd':     goEast  = b; break;
+  }
+  switch (keyCode) {
+      case UP:    goNorth = b; break;
+      case DOWN:  goSouth = b; break;
+      case LEFT:  goWest  = b; break;
+      case RIGHT: goEast  = b; break;
+      case SHIFT: running = b; break;
+  }
 }
 
 void mousePressed(){
@@ -78,23 +109,29 @@ void mousePressed(){
 
 int moveDist = 20*-1;
 void inputMovement(){
-  if(keyPressed){
-      if (key == CODED) {
-        PVector delta = new PVector();
-        if(keyCode == UP   || key == 'w' || key == 'W') delta.add(new PVector(0,-moveDist));
-        if(keyCode == DOWN || key == 's' || key == 'S') delta.add(new PVector(0,moveDist));
-        if(keyCode == LEFT || key == 'a' || key == 'A') delta.add(new PVector(moveDist,0));
-        if(keyCode == RIGHT|| key == 'd' || key == 'D') delta.add(new PVector(-moveDist,0));
-        player.move(delta);
-      } else {
-        PVector delta = new PVector();
-        if(key == 'w' || key == 'W') delta.add(new PVector(0,-moveDist));
-        if(key == 's' || key == 'S') delta.add(new PVector(0,moveDist));
-        if(key == 'a' || key == 'A') delta.add(new PVector(moveDist,0));
-        if(key == 'd' || key == 'D') delta.add(new PVector(-moveDist,0));
-        player.move(delta);
-      }
-   }
+  if(player != null) {
+    PVector delta = new PVector();
+    if (goNorth) delta.y += (player.walkSpeed - player.walkSpeedMult+1);
+    if (goSouth) delta.y -= (player.walkSpeed - player.walkSpeedMult+1);
+    if (goEast)  delta.x += (player.walkSpeed - player.walkSpeedMult+1);
+    if (goWest)  delta.x -= (player.walkSpeed - player.walkSpeedMult+1);
+    if (running && player.stamina > 0 && penalty <= 0) {
+        delta.x *= (player.runningSpeed - player.runningSpeedMult+1);
+        delta.y *= (player.runningSpeed - player.runningSpeedMult+1);
+        if(goNorth||goEast||goSouth||goWest){
+            player.stamina -= (player.fatigueRate * player.fatigueMult);
+        }
+    }
+    if(player.stamina <= 0){
+        penalty = player.recoverRate;
+    }
+    if(penalty > 0 || player.stamina < player.maxStamina){
+        player.stamina += player.restitutionRate;
+    }
+    player.move(delta);
+
+    if(penalty > 0)penalty--;
+    }       
 }
 
 void displayParticles(){
@@ -122,15 +159,17 @@ void inputMouse(){
     normMouseDirection.normalize();
     PVector p2 = PVector.add(new PVector(pp.x,pp.y),normMouseDirection);
     
-    zoom = lerp(zoom,maxZoom,zoomInSpeed);
-    player.mouseDirection.setMag(zoom);
-    translate(player.mouseDirection.x*-1,player.mouseDirection.y*-1);
+    if(mouseButton == RIGHT){
+      zoom = lerp(zoom,maxZoom,zoomInSpeed);
+      player.mouseDirection.setMag(zoom);
+      translate(player.mouseDirection.x*-1,player.mouseDirection.y*-1);
+    }
     
     float ran = random(100,120);
     player.mouseDirection.setMag(ran);
     
     boolean isBullet = true;
-    particles.add(new Particle(p2.x,p2.y,new Vec2(normMouseDirection.x*0.5,normMouseDirection.y*-1*0.5), sz, isBullet));
+    if(mouseButton == LEFT) particles.add(new Particle(p2.x,p2.y,new Vec2(normMouseDirection.x*0.5,normMouseDirection.y*-1*0.5), sz, isBullet));
   } else {
     if(player.mouseDirection != null){
       player.mouseDirection.setMag(zoom);
@@ -155,6 +194,11 @@ void drawInfo(){
   text("Mouse  : "+(mouseX) + " " + (mouseY),20,height-60);
   Vec2 gridPP = toGrid(pp,world.gridSize);
   text("To grid: "+gridPP.x + " " + gridPP.y,20,height-80);
+  text("Zoom lvl: "+ scl,20,height-100);
+  
+  text("Stamina: "+ player.stamina,20,height-140);
+  text("Weight: "+ player.totalWeight,20,height-160);
+  text("Penalty: "+ penalty,20,height-180);
 }
 
 public static Vec2 toGrid(Vec2 v, int gridSize){
