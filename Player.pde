@@ -4,15 +4,16 @@ class Player{
   int radius;
   
   //Movement
-  public double stamina,
-            maxStamina = 100,
-            restitutionRate = 1,
-            fatigueRate = 2,
+  public float maxStamina = 100,
+            restitutionRate = 0.2,
+            fatigueRate = 0.5,
             fatigueMult = 1,
             recoverRate = 100,
             totalWeight = 5;
-  private double walkSpeed = 2, walkSpeedMult = 1,
-          runningSpeed = 3, runningSpeedMult = 1;
+  public float stamina = maxStamina;
+  private float walkSpeed = 3, walkSpeedMult = 2,
+          runningSpeed = 2, runningSpeedMult = 1,
+          crouchSpeedRedux = 0.5;
             
   Player(int x, int y, int r){
     this.radius = r;

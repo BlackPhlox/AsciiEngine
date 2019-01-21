@@ -27,7 +27,7 @@ void setup(){
   
 }
 
-private boolean goNorth,goSouth,goEast,goWest,running;
+private boolean goNorth,goSouth,goEast,goWest,running,crouching;
 public static double penalty;
 
 void setupPhysics(){
@@ -49,7 +49,14 @@ void draw(){
   box2d.step();
   
   drawWorld();
-
+  if(keyBoardAim){
+    pushStyle();
+      stroke(255);
+      strokeWeight(5);
+      point(cursor.x,cursor.y);
+    popStyle();
+  }
+  
   popMatrix();
   //FOREGROUND
   if(player.showMap) player.displayMiniMap();
@@ -72,18 +79,23 @@ void drawWorld(){
   popMatrix();
 }
 
+boolean showCenter = false;
+boolean keyBoardAim = false;
+float cursorMovementSpeed = 5;
+PVector cursor = new PVector();
 void keyPressed(){
   if (key == '+') scl += 0.1;
   if (key == '-') scl -= 0.1;
   if (key == 'm' || key == 'M') player.showMap = !player.showMap;
-  setPressedKeys(true);
+  if (key == 'k') keyBoardAim = !keyBoardAim;
+  setPressedMovementKeys(true, keyBoardAim);
 }
 
 void keyReleased(){
-  setPressedKeys(false);
+  setPressedMovementKeys(false, keyBoardAim);
 }
 
-void setPressedKeys(boolean b){
+void setPressedMovementKeys(boolean b, boolean usesKeyboardAim){
   switch (key) {
     case 'W':     goNorth = b; break;
     case 'w':     goNorth = b; break;
@@ -94,12 +106,17 @@ void setPressedKeys(boolean b){
     case 'D':     goEast  = b; break;
     case 'd':     goEast  = b; break;
   }
-  switch (keyCode) {
+  if(!usesKeyboardAim){
+    switch (keyCode) {
       case UP:    goNorth = b; break;
       case DOWN:  goSouth = b; break;
       case LEFT:  goWest  = b; break;
       case RIGHT: goEast  = b; break;
-      case SHIFT: running = b; break;
+    }
+  }
+  switch (keyCode) {
+    case SHIFT: running = b; break;
+    case ALT: crouching = b; break;
   }
 }
 
@@ -107,15 +124,29 @@ void mousePressed(){
   //showCenter = !showCenter;
 }
 
-int moveDist = 20*-1;
+void cursorMovement(){
+  if(keyPressed && keyBoardAim){
+    switch (keyCode) {
+      case UP:    cursor.add(0,-1*cursorMovementSpeed); break;
+      case DOWN:  cursor.add(0,1*cursorMovementSpeed); break;
+      case LEFT:  cursor.add(-1*cursorMovementSpeed,0); break;
+      case RIGHT: cursor.add(1*cursorMovementSpeed,0); break;
+    }
+  }
+}
+
 void inputMovement(){
+  cursorMovement();
   if(player != null) {
     PVector delta = new PVector();
-    if (goNorth) delta.y += (player.walkSpeed - player.walkSpeedMult+1);
-    if (goSouth) delta.y -= (player.walkSpeed - player.walkSpeedMult+1);
-    if (goEast)  delta.x += (player.walkSpeed - player.walkSpeedMult+1);
-    if (goWest)  delta.x -= (player.walkSpeed - player.walkSpeedMult+1);
-    if (running && player.stamina > 0 && penalty <= 0) {
+    if (goNorth) delta.y += (player.walkSpeed * player.walkSpeedMult);
+    if (goSouth) delta.y -= (player.walkSpeed * player.walkSpeedMult);
+    if (goEast)  delta.x += (player.walkSpeed * player.walkSpeedMult);
+    if (goWest)  delta.x -= (player.walkSpeed * player.walkSpeedMult);
+    if (crouching){
+      delta.x *= player.crouchSpeedRedux;
+      delta.y *= player.crouchSpeedRedux;
+    } else if (running && player.stamina > 0 && penalty <= 0) {
         delta.x *= (player.runningSpeed - player.runningSpeedMult+1);
         delta.y *= (player.runningSpeed - player.runningSpeedMult+1);
         if(goNorth||goEast||goSouth||goWest){
@@ -130,7 +161,7 @@ void inputMovement(){
     }
     player.move(delta);
 
-    if(penalty > 0)penalty--;
+    if(penalty > 0) penalty--;
     }       
 }
 
@@ -180,7 +211,6 @@ void inputMouse(){
   
 }
 
-boolean showCenter = false;
 void drawInfo(){
   stroke(255);
   fill(255);
@@ -195,7 +225,7 @@ void drawInfo(){
   Vec2 gridPP = toGrid(pp,world.gridSize);
   text("To grid: "+gridPP.x + " " + gridPP.y,20,height-80);
   text("Zoom lvl: "+ scl,20,height-100);
-  
+  if(keyBoardAim) text("Keyboard Only",20,height-120);
   text("Stamina: "+ player.stamina,20,height-140);
   text("Weight: "+ player.totalWeight,20,height-160);
   text("Penalty: "+ penalty,20,height-180);
