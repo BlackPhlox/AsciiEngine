@@ -169,69 +169,49 @@ void inputMovement(){
 }
 
 float zoom;
-float maxZoom = 500;
 float mouseZoom;
+
+//Specified by the weapon
+float maxZoom = 500;
 float zoomInSpeed = 0.05;
 float zoomOutSpeed = 0.2;
+float minVel = 100;
+float maxVel = 120;
 void inputMouse(){
-    
-    Vec2 playerPosition = world.box2d.getBodyPixelCoord(player.body);
-    
-    PVector shootMouseDirection = getMouseAimDirection(player.mouseDirection);
-    
-    PVector proSpawnPos = getProjectileSpawnPos(playerPosition,shootMouseDirection);
-    
-    easeMouseZoomDirection(playerPosition,player.mouseDirection);
-    
-    float ran = random(100,120);
-    if(shootMouseDirection != null) shootMouseDirection.setMag(ran);
-    float sz = 2;//random(4, 8);
-    boolean isBullet = true;
-    if(
-      leftPress && 
-      proSpawnPos != null && 
-      shootMouseDirection != null
-    ) 
-      world.particles.add(
-        new Particle(
-          proSpawnPos.x,proSpawnPos.y,
-          new Vec2(shootMouseDirection.x*0.5,shootMouseDirection.y*-1*0.5),
-          sz, isBullet)
-    );
-}
-
-PVector getMouseAimDirection(PVector mouseDirection){
-  if(mouseDirection != null){
-      PVector shootMouseDirection = mouseDirection;
-      return shootMouseDirection.normalize();
+    if(player.mouseDirection != null){
+      float sz = 2;//random(4, 8);
+      Vec2 pp = world.box2d.getBodyPixelCoord(player.body);
+      
+      mouseZoom = getMouseAimZoom(pp);
+      PVector p2 = particlesSpawnPos(pp,player.mouseDirection);
+      
+      if(rightPress){
+        zoom = lerp(zoom,mouseZoom,zoomInSpeed);
+        player.mouseDirection.setMag(zoom);
+        translate(player.mouseDirection.x*-1,player.mouseDirection.y*-1);
+      }
+      
+      float ran = random(minVel,maxVel);
+      player.mouseDirection.setMag(ran);
+      
+      boolean isBullet = true;
+      if(leftPress) world.particles.add(new Particle(p2.x,p2.y,new Vec2(player.mouseDirection.x*0.5,player.mouseDirection.y*-1*0.5), sz, isBullet));
+      if(player.mouseDirection != null){
+        player.mouseDirection.setMag(zoom);
+        translate(player.mouseDirection.x*-1,player.mouseDirection.y*-1);
+      }
     }
-  return null;
+    zoom = lerp(zoom,0,zoomOutSpeed);
 }
 
-PVector getProjectileSpawnPos(Vec2 playerPosition, PVector mouseDirection){
-  if(mouseDirection != null){
-      return PVector.add(new PVector(playerPosition.x,playerPosition.y),mouseDirection); 
-    }
-  return null;
+float getMouseAimZoom(Vec2 playerPos){
+  return constrain(PVector.dist(new PVector(playerPos.x,playerPos.y),player.mouseDirection),0,maxZoom);
 }
 
-void easeMouseZoomDirection(Vec2 playerPosition, PVector zoomDir){
-  if(zoomDir != null){
-    mouseZoom = constrain(PVector.dist(new PVector(playerPosition.x,playerPosition.y),zoomDir),0,maxZoom);
-    println(mouseZoom);
-    if(rightPress){
-      zoom = lerp(zoom,mouseZoom,zoomInSpeed);
-      setMouseZoom();
-    } else {
-      setMouseZoom();
-    } 
-  }
-  zoom = lerp(zoom,0,zoomOutSpeed);
-}
-
-void setMouseZoom(){
-  player.mouseDirection.setMag(zoom);
-  translate(player.mouseDirection.x*-1,player.mouseDirection.y*-1);
+//Normalizes the mouseDirection Vector
+PVector particlesSpawnPos(Vec2 playerPos, PVector mouseDirection){
+  mouseDirection.normalize();
+  return PVector.add(new PVector(playerPos.x,playerPos.y),mouseDirection);
 }
 
 void drawInfo(){

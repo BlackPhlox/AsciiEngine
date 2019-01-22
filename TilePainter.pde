@@ -40,7 +40,7 @@ class TilePainter{
       pushStyle();
       stroke(255,20);
       fill(255,20);
-      rect(0,0,world.gridSize,world.gridSize);
+      square(0,0,world.gridSize);
       popStyle();
     }
     if(world.showLine){
@@ -51,13 +51,13 @@ class TilePainter{
   private void drawSquare(PVector p){
     fill(255,50);
     PVector bottom = new PVector(map(0,0,world.layers,0,p.x),map(0,0,world.layers,0,p.y));
-    rect(bottom.x,bottom.y,world.gridSize,world.gridSize);
+    square(bottom.x,bottom.y,world.gridSize);
   }
   
   private void drawRoof(PVector p, int roofHeight){
     fill(50);
     PVector top = new PVector(map(roofHeight,0,world.layers,0,p.x),map(roofHeight,0,world.layers,0,p.y));
-    rect(top.x,top.y,world.gridSize*2,world.gridSize*2);
+    square(top.x,top.y,world.gridSize*2);
   }
   
   private void drawBox(PVector p, int boxHeight){
@@ -70,7 +70,7 @@ class TilePainter{
     line(bottom.x+size,bottom.y-size,top.x+size,top.y-size);
     line(bottom.x-size,bottom.y+size,top.x-size,top.y+size);
     line(bottom.x+size,bottom.y+size,top.x+size,top.y+size);
-    rect(top.x,top.y,world.gridSize*1.4,world.gridSize*1.4);
+    square(top.x,top.y,world.gridSize*1.4);
   }
   
   private void drawString(int min, int max, PVector p, String s){

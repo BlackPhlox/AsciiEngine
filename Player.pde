@@ -54,10 +54,10 @@ class Player{
         translate((-posGrid.x*miniMapGridSize),(-posGrid.y*miniMapGridSize));
         fill(255,50);
         for(Tile t : world.tiles){
-          rect(t.x*miniMapGridSize,t.y*miniMapGridSize,miniMapGridSize,miniMapGridSize);
+          square(t.x*miniMapGridSize,t.y*miniMapGridSize,miniMapGridSize);
         }
         popMatrix();
-      rect(0,0,miniMapGridSize,miniMapGridSize);
+      square(0,0,miniMapGridSize);
     popStyle();
     popMatrix();
   }
