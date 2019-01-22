@@ -28,7 +28,7 @@ class TilePainter{
   }
   
   PVector calculateDepthVector(int x, int y){
-    Vec2 v = box2d.getBodyPixelCoord(player.body);
+    Vec2 v = world.box2d.getBodyPixelCoord(player.body);
     return PVector.sub(
         new PVector(x*world.gridSize,y*world.gridSize),
         new PVector(v.x,v.y)

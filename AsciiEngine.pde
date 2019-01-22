@@ -8,19 +8,16 @@ import org.jbox2d.common.*;
 import org.jbox2d.dynamics.*;
 import org.jbox2d.dynamics.contacts.*;
 
-import javafx.animation.AnimationTimer;
 
-Box2DProcessing box2d;
 public static Player player;
 World world;
 
-ArrayList<Particle> particles = new ArrayList<Particle>();
 
 void setup(){
   size(600,600);
   //fullScreen();
-  setupPhysics();
-  world = new World(12,35,35);
+  world = new World(this,12,35,35);
+  world.setupPhysics();
   createWorld();
   player = new Player(100,100,5);
   smooth(1);
@@ -30,15 +27,7 @@ void setup(){
 private boolean goNorth,goSouth,goEast,goWest,running,crouching;
 public static double penalty;
 
-void setupPhysics(){
-  // Initialize box2d physics and create the world
-  box2d = new Box2DProcessing(this);
-  box2d.createWorld();
 
-  // Turn on collision listening!
-  box2d.listenForCollisions();
-  box2d.setGravity(0,0);
-}
 float scl = 1;
 void draw(){
   //BACKEND-BACKGROUND
@@ -46,7 +35,7 @@ void draw(){
   inputMovement();
   inputMouse();
   
-  box2d.step();
+  world.box2d.step();
   
   drawWorld();
   if(keyBoardAim){
@@ -65,7 +54,7 @@ void draw(){
 
 void drawWorld(){
   background(0);
-  Vec2 pp = box2d.getBodyPixelCoord(player.body);
+  Vec2 pp = world.box2d.getBodyPixelCoord(player.body);
   pushMatrix();
     translate(-(width * (scl - 1) / 2),-(height * (scl - 1) / 2));
     scale(scl);
@@ -73,7 +62,7 @@ void drawWorld(){
       translate(-pp.x+width/2, -pp.y+height/2);
       world.displayBackground();
       player.display();
-      displayParticles();
+      world.displayParticles();
       world.displayForeground();
     popMatrix();
   popMatrix();
@@ -84,8 +73,8 @@ boolean keyBoardAim = false;
 float cursorMovementSpeed = 5;
 PVector cursor = new PVector();
 void keyPressed(){
-  if (key == '+') scl += 0.1;
-  if (key == '-') scl -= 0.1;
+  if (key == '+' && scl < 8) scl += 0.1;
+  if (key == '-' && scl > -8) scl -= 0.1;
   if (key == 'm' || key == 'M') player.showMap = !player.showMap;
   if (key == 'k') keyBoardAim = !keyBoardAim;
   setPressedMovementKeys(true, keyBoardAim);
@@ -120,8 +109,22 @@ void setPressedMovementKeys(boolean b, boolean usesKeyboardAim){
   }
 }
 
+boolean leftPress,centerPress,rightPress;
 void mousePressed(){
   //showCenter = !showCenter;
+  switch(mouseButton){
+    case LEFT: leftPress = true; break;
+    case CENTER: centerPress = true; break;
+    case RIGHT: rightPress = true; break;
+  }
+}
+
+void mouseReleased(){
+  switch(mouseButton){
+    case LEFT: leftPress = false; break;
+    case CENTER: centerPress = false; break;
+    case RIGHT: rightPress = false; break;
+  }
 }
 
 void cursorMovement(){
@@ -165,50 +168,70 @@ void inputMovement(){
     }       
 }
 
-void displayParticles(){
-  for (int i = particles.size()-1; i >= 0; i--) {
-    Particle p = particles.get(i);
-    p.display();
-    // Particles that leave the screen, we delete them
-    // (note they have to be deleted from both the box2d world and our list
-    if (p.done()) {
-      particles.remove(i);
-    }
-  }
-}
-
 float zoom;
-float maxZoom = 50;
+float maxZoom = 500;
+float mouseZoom;
 float zoomInSpeed = 0.05;
 float zoomOutSpeed = 0.2;
 void inputMouse(){
-  if(mousePressed){
     
-    float sz = 2;//random(4, 8);
-    Vec2 pp = box2d.getBodyPixelCoord(player.body);
-    PVector normMouseDirection = player.mouseDirection;
-    normMouseDirection.normalize();
-    PVector p2 = PVector.add(new PVector(pp.x,pp.y),normMouseDirection);
+    Vec2 playerPosition = world.box2d.getBodyPixelCoord(player.body);
     
-    if(mouseButton == RIGHT){
-      zoom = lerp(zoom,maxZoom,zoomInSpeed);
-      player.mouseDirection.setMag(zoom);
-      translate(player.mouseDirection.x*-1,player.mouseDirection.y*-1);
-    }
+    PVector shootMouseDirection = getMouseAimDirection(player.mouseDirection);
+    
+    PVector proSpawnPos = getProjectileSpawnPos(playerPosition,shootMouseDirection);
+    
+    easeMouseZoomDirection(playerPosition,player.mouseDirection);
     
     float ran = random(100,120);
-    player.mouseDirection.setMag(ran);
-    
+    if(shootMouseDirection != null) shootMouseDirection.setMag(ran);
+    float sz = 2;//random(4, 8);
     boolean isBullet = true;
-    if(mouseButton == LEFT) particles.add(new Particle(p2.x,p2.y,new Vec2(normMouseDirection.x*0.5,normMouseDirection.y*-1*0.5), sz, isBullet));
-  } else {
-    if(player.mouseDirection != null){
-      player.mouseDirection.setMag(zoom);
-      translate(player.mouseDirection.x*-1,player.mouseDirection.y*-1);
+    if(
+      leftPress && 
+      proSpawnPos != null && 
+      shootMouseDirection != null
+    ) 
+      world.particles.add(
+        new Particle(
+          proSpawnPos.x,proSpawnPos.y,
+          new Vec2(shootMouseDirection.x*0.5,shootMouseDirection.y*-1*0.5),
+          sz, isBullet)
+    );
+}
+
+PVector getMouseAimDirection(PVector mouseDirection){
+  if(mouseDirection != null){
+      PVector shootMouseDirection = mouseDirection;
+      return shootMouseDirection.normalize();
     }
-    zoom = lerp(zoom,0,zoomOutSpeed);
+  return null;
+}
+
+PVector getProjectileSpawnPos(Vec2 playerPosition, PVector mouseDirection){
+  if(mouseDirection != null){
+      return PVector.add(new PVector(playerPosition.x,playerPosition.y),mouseDirection); 
+    }
+  return null;
+}
+
+void easeMouseZoomDirection(Vec2 playerPosition, PVector zoomDir){
+  if(zoomDir != null){
+    mouseZoom = constrain(PVector.dist(new PVector(playerPosition.x,playerPosition.y),zoomDir),0,maxZoom);
+    println(mouseZoom);
+    if(rightPress){
+      zoom = lerp(zoom,mouseZoom,zoomInSpeed);
+      setMouseZoom();
+    } else {
+      setMouseZoom();
+    } 
   }
-  
+  zoom = lerp(zoom,0,zoomOutSpeed);
+}
+
+void setMouseZoom(){
+  player.mouseDirection.setMag(zoom);
+  translate(player.mouseDirection.x*-1,player.mouseDirection.y*-1);
 }
 
 void drawInfo(){
@@ -219,7 +242,7 @@ void drawInfo(){
     line(width/2,0,width/2,height);
     line(0,height/2,width,height/2);
   }
-  Vec2 pp = box2d.getBodyPixelCoord(player.body);
+  Vec2 pp = world.box2d.getBodyPixelCoord(player.body);
   text("Player : "+floor(-pp.x+width/2)+ " " +floor(-pp.y+height/2), 20,height-20);
   text("Mouse  : "+(mouseX) + " " + (mouseY),20,height-60);
   Vec2 gridPP = toGrid(pp,world.gridSize);

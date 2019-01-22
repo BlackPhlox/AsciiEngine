@@ -12,8 +12,8 @@ abstract class Static extends Tile{
     PolygonShape sd = new PolygonShape();
     
     // Figure out the box2d coordinates
-    float box2dW = box2d.scalarPixelsToWorld(w/2);
-    float box2dH = box2d.scalarPixelsToWorld(h/2);
+    float box2dW = world.box2d.scalarPixelsToWorld(w/2);
+    float box2dH = world.box2d.scalarPixelsToWorld(h/2);
     
     // We're just a box
     sd.setAsBox(box2dW, box2dH);
@@ -22,8 +22,8 @@ abstract class Static extends Tile{
     // Create the body
     BodyDef bd = new BodyDef();
     bd.type = BodyType.STATIC;
-    bd.position.set(box2d.coordPixelsToWorld(x*world.gridSize,y*world.gridSize));
-    b = box2d.createBody(bd);
+    bd.position.set(world.box2d.coordPixelsToWorld(x*world.gridSize,y*world.gridSize));
+    b = world.box2d.createBody(bd);
    
     // Attached the shape to the body using a Fixture
     b.createFixture(sd,1);

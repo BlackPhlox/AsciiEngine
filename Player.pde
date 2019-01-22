@@ -27,7 +27,7 @@ class Player{
   }
   
   void display() {
-    Vec2 pos = box2d.getBodyPixelCoord(body);
+    Vec2 pos = world.box2d.getBodyPixelCoord(body);
     pushMatrix();
       fill(100);
       translate(pos.x, pos.y);
@@ -44,7 +44,7 @@ class Player{
   
   int miniMapGridSize = 5;
   void displayMiniMap(){
-    Vec2 pos = box2d.getBodyPixelCoord(body);
+    Vec2 pos = world.box2d.getBodyPixelCoord(body);
     Vec2 posGrid = toGrid(pos,world.gridSize);
     pushMatrix();
     pushStyle();
@@ -66,14 +66,14 @@ class Player{
     // Define a body
     BodyDef bd = new BodyDef();
     // Set its position
-    bd.position = box2d.coordPixelsToWorld(x, y);
+    bd.position = world.box2d.coordPixelsToWorld(x, y);
     bd.type = BodyType.DYNAMIC;
-    body = box2d.createBody(bd);
+    body = world.box2d.createBody(bd);
     body.setLinearDamping(5);
     body.setFixedRotation(true);
     // Make the body's shape a circle
     CircleShape cs = new CircleShape();
-    cs.m_radius = box2d.scalarPixelsToWorld(r);
+    cs.m_radius = world.box2d.scalarPixelsToWorld(r);
 
     FixtureDef fd = new FixtureDef();
     fd.shape = cs;

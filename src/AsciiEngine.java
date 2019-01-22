@@ -1,6 +1,7 @@
 import java.util.*;
 
 import org.jbox2d.dynamics.contacts.Contact;
+import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PVector;
 import shiffman.box2d.*;
@@ -98,8 +99,8 @@ public class AsciiEngine extends PApplet{
     float cursorMovementSpeed = 5;
     PVector cursor = new PVector();
     public void keyPressed(){
-        if (key == '+') scl += 0.1;
-        if (key == '-') scl -= 0.1;
+        if (key == '+' && scl < 8) scl += 0.1;
+        if (key == '-' && scl > -8) scl -= 0.1;
         if (key == 'm' || key == 'M') player.showMap = !player.showMap;
         if (key == 'k') keyBoardAim = !keyBoardAim;
         setPressedMovementKeys(true, keyBoardAim);
@@ -130,7 +131,7 @@ public class AsciiEngine extends PApplet{
         }
         switch (keyCode) {
             case SHIFT: running = b; break;
-            case ALT: crouching = b; break;
+            case CONTROL: crouching = b; break;
         }
     }
 

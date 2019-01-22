@@ -26,7 +26,7 @@ class Particle {
 
   // This function removes the particle from the box2d world
   void killBody() {
-    box2d.destroyBody(body);
+    world.box2d.destroyBody(body);
   }
   
   void incCollision(){
@@ -41,7 +41,7 @@ class Particle {
   // Is the particle ready for deletion?
   boolean done() {
     // Let's find the screen position of the particle
-    Vec2 pos = box2d.getBodyPixelCoord(body);
+    Vec2 pos = world.box2d.getBodyPixelCoord(body);
     // Is it off the bottom of the screen?
     
     Vec2 lv = body.getLinearVelocity();
@@ -74,7 +74,7 @@ class Particle {
     }
 
     // We look at each body and get its screen position
-    pos = box2d.getBodyPixelCoord(body);
+    pos = world.box2d.getBodyPixelCoord(body);
     // Get its angle of rotation
     
     if(isBullet){
@@ -100,13 +100,13 @@ class Particle {
     // Define a body
     BodyDef bd = new BodyDef();
     // Set its position
-    bd.position = box2d.coordPixelsToWorld(x, y);
+    bd.position = world.box2d.coordPixelsToWorld(x, y);
     bd.type = BodyType.DYNAMIC;
-    body = box2d.createBody(bd);
+    body = world.box2d.createBody(bd);
 
     // Make the body's shape a circle
     CircleShape cs = new CircleShape();
-    cs.m_radius = box2d.scalarPixelsToWorld(r);
+    cs.m_radius = world.box2d.scalarPixelsToWorld(r);
 
     FixtureDef fd = new FixtureDef();
     fd.shape = cs;
