@@ -34,4 +34,8 @@ enum TileType{
     return icon;
   }
   
+  public Character getChar(){
+    return (icon.length() == 1 ? icon.charAt(0) : null);
+  }
+  
 }

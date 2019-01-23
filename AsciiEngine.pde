@@ -13,7 +13,7 @@ World world;
 void setup(){
   size(600,600);
   //fullScreen();
-  world = new World(this,12,35,35);
+  world = new World(this,35,35);
   createWorld();
   world.player = new Player(100,100,5);
   world.items.add(new Item(200,150,10,"Gun"));
@@ -28,6 +28,69 @@ void draw(){
   world.update();
   drawInfo();
 }
+
+void drawInfo(){  
+  fill(255);
+  text("Framerate: "+round(frameRate),20,height-40);
+  if(showCenter){
+    line(width/2,0,width/2,height);
+    line(0,height/2,width,height/2);
+  }
+  Vec2 pp = world.getPlayerPos();
+  text("Position : "+round(pp.x)+ " " +round(pp.y), 20,height-20);
+  text("Mouse Pos  : "+(mouseX) + " " + (mouseY),20,height-60);
+  Vec2 gridPP = world.toGrid(pp);
+  text("To grid: "+gridPP.x + " " + gridPP.y,20,height-80);
+  text("Zoom lvl: "+ nfc(world.scl,1),20,height-100);
+  
+  if(world.player != null){
+    if(world.player.keyBoardAim) text("Keyboard Only",20,height-120);
+    text("Stamina: "+ nfc(round(world.player.stamina),1),20,height-140);
+    text("Weight: "+ world.player.totalWeight,20,height-160);
+    text("Penalty: "+ world.player.penalty,20,height-180);
+    String state = "";
+    if(!world.player.running && !world.player.crouching) state = "Walking";
+    if(world.player.running) state = "Running";
+    if(world.player.crouching) state = "Crouching";
+    text("MovementState: "+ state,20,height-200);
+    text((world.player.shooting?"Shooting":"")+" "+(rightPress?"Aiming":""),20,height-220);
+  }
+}
+
+// WORLD GENERATION/CREATION
+
+void createWorld(){
+  
+  for(int y = 0; y < world.h; y++){
+    for(int x = 0; x < world.w; x++){
+      new GhostTile(world,TileType.FLOOR,x,y);
+      if(x == 10 && y % 1 == 0)new GhostTile(world,TileType.ROOF,  x,y);
+      if(x == 5 && y % 2 == 0) new GhostTile(world,TileType.BLOCK, x,y);
+      if(x == 8 && y % 4 == 0) new GhostTile(world,TileType.TREE,  x,y);
+      if(x == 20 && y == 8)    new GhostTile(world,TileType.LADDER,x,y);
+      if(x == 20 && y == 10)   new GhostTile(world,TileType.SQUARE,x,y);
+    }
+  }
+  
+  //working (kinda)
+  new Wall(world,1,1,34,1); //x
+  new Wall(world,1,1,1,34); //y
+  new Wall(world,1,35,20,35); //w1
+  new Wall(world,30,35,35,35); //w2
+  new Wall(world,35,1,35,35); //h
+  
+  //new Wall(world,1,15,35,35); //Check performace
+  
+  //Supposed to work
+  /*new Wall(world,0,0,35,0);    //w1
+    new Wall(world,35,0,35,35);  //h1
+    
+    new Wall(world,0,35,35,35);  //w2
+    new Wall(world,35,0,0,0);    //h2
+  */
+}
+
+// INPUT HANDLING
 
 private boolean aimGoNorth,aimGoSouth,aimGoEast,aimGoWest;
 
@@ -45,8 +108,8 @@ void keyReleased(){
   setPressedMovementKeys(false);
 }
 
-private boolean goNorth,goSouth,goEast,goWest;
-private boolean playerSpace, playerShift, playerCtrl, playerLessThan;
+boolean goNorth,goSouth,goEast,goWest;
+boolean playerSpace, playerShift, playerCtrl, playerLessThan;
 void setPressedMovementKeys(boolean b){
   switch (key) {
     case 'W':     goNorth = b; break;
@@ -101,55 +164,6 @@ void mousePressed(){
 
 void mouseReleased(){
   setPressedMouseButtons(false);
-}
-
-void drawInfo(){  
-  fill(255);
-  text("Framerate: "+round(frameRate),20,height-40);
-  if(showCenter){
-    line(width/2,0,width/2,height);
-    line(0,height/2,width,height/2);
-  }
-  Vec2 pp = world.getPlayerPos();
-  text("Position : "+round(pp.x)+ " " +round(pp.y), 20,height-20);
-  text("Mouse Pos  : "+(mouseX) + " " + (mouseY),20,height-60);
-  Vec2 gridPP = world.toGrid(pp);
-  text("To grid: "+gridPP.x + " " + gridPP.y,20,height-80);
-  text("Zoom lvl: "+ nfc(world.scl,1),20,height-100);
-  
-  if(world.player != null){
-    if(world.player.keyBoardAim) text("Keyboard Only",20,height-120);
-    text("Stamina: "+ nfc(round(world.player.stamina),1),20,height-140);
-    text("Weight: "+ world.player.totalWeight,20,height-160);
-    text("Penalty: "+ world.player.penalty,20,height-180);
-    String state = "";
-    if(!world.player.running && !world.player.crouching) state = "Walking";
-    if(world.player.running) state = "Running";
-    if(world.player.crouching) state = "Crouching";
-    text("MovementState: "+ state,20,height-200);
-    text((world.player.shooting?"Shooting":"")+" "+(rightPress?"Aiming":""),20,height-220);
-  }
-}
-
-void createWorld(){
-  
-  //working (kinda)
-  new Wall(world,1,1,34,1); //x
-  new Wall(world,1,1,1,34); //y
-  new Wall(world,1,35,20,35); //w1
-  new Wall(world,30,35,35,35); //w2
-  new Wall(world,35,1,35,35); //h
-  
-  //new Wall(world,1,15,35,35); //Check performace
-  
-  //Supposed to work
-  /*new Wall(world,0,0,35,0);    //w1
-    new Wall(world,35,0,35,35);  //h1
-    
-    new Wall(world,0,35,35,35);  //w2
-    new Wall(world,35,0,0,0);    //h2
-  */
-  
 }
 
 //PHYSICS

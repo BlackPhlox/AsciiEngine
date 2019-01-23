@@ -13,11 +13,12 @@ class TilePainter{
     drawDebug(p);
     
     switch(t){
-      case WALL:   drawString(0,world.layers,p,t.getIcon());break;
-      case TREE:   drawString(0,world.layers,p,t.getIcon());break;
-      case LADDER: drawString(0,world.layers-1,p,t.getIcon());break;
-      case ROOF:   drawRoof(p,world.layers);break;
-      case FLOOR:  drawString(0,1,p,t.getIcon());break;
+    //case Type:   drawMethod   (min, max,        p,String or Char,Fade,DescFade 
+      case WALL:   drawCharacter(0,world.layers,  p,t.getChar()   ,true,false) ;break;
+      case TREE:   drawString(   4,               p,t.getIcon()   ,false,false);break;
+      case LADDER: drawCharacter(0,world.layers-1,p,t.getChar()   ,false,false);break;
+      case ROOF:   drawRoof(                      p,world.layers)              ;break;
+      case FLOOR:  drawCharacter(0,1,             p,t.getChar()   ,false,false);break;
     //case EMPTY:  drawString(0,1,p,t.getIcon());break;
       
       case SQUARE: drawSquare(p);break;
@@ -50,21 +51,21 @@ class TilePainter{
   
   private void drawSquare(PVector p){
     fill(255,50);
-    PVector bottom = new PVector(map(0,0,world.layers,0,p.x),map(0,0,world.layers,0,p.y));
+    PVector bottom = new PVector(map(0,0,world.depthDensity,0,p.x),map(0,0,world.depthDensity,0,p.y));
     square(bottom.x,bottom.y,world.gridSize);
   }
   
   private void drawRoof(PVector p, int roofHeight){
     fill(50);
-    PVector top = new PVector(map(roofHeight,0,world.layers,0,p.x),map(roofHeight,0,world.layers,0,p.y));
+    PVector top = new PVector(map(roofHeight,0,world.depthDensity,0,p.x),map(roofHeight,0,world.depthDensity,0,p.y));
     square(top.x,top.y,world.gridSize*2);
   }
   
   private void drawBox(PVector p, int boxHeight){
     fill(255);
-    PVector bottom = new PVector(map(0,0,world.layers,0,p.x),map(0,0,world.layers,0,p.y));
+    PVector bottom = new PVector(map(0,0,world.depthDensity,0,p.x),map(0,0,world.depthDensity,0,p.y));
     //rect(bottom.x,bottom.y,world.gridSize,world.gridSize);
-    PVector top = new PVector(map(boxHeight,0,world.layers,0,p.x),map(boxHeight,0,world.layers,0,p.y));
+    PVector top = new PVector(map(boxHeight,0,world.depthDensity,0,p.x),map(boxHeight,0,world.depthDensity,0,p.y));
     float size = world.gridSize/2;
     line(bottom.x-size,bottom.y-size,top.x-size,top.y-size);
     line(bottom.x+size,bottom.y-size,top.x+size,top.y-size);
@@ -73,32 +74,52 @@ class TilePainter{
     square(top.x,top.y,world.gridSize*1.4);
   }
   
-  private void drawString(int min, int max, PVector p, String s){
+  private void drawString(int min, PVector p, String s, boolean fade, boolean descFade){
     if(s.length() > 1){
-      int sLength = s.length();
+      int sLength = s.length(); 
         for(int i = 0; i < sLength; i++){
-          //fill(map(i,0,sLength,255,0));
           pushStyle();
-          fill(255);
-          drawTextOffset(s.charAt(i),map(i,0,world.layers,0,p.x),map(i,0,world.layers,0,p.y));
+          if(fade){
+            if(descFade){
+              fill(map(i,min,sLength,255,0));
+            } else {
+              fill(map(i,min,sLength,0,255));
+            }
+          } else {
+            fill(255);
+          }
+          if(min <= i) drawTextOffset(s.charAt(i),i,p);
           popStyle();
-        }     
-     } else {
-       for(int i = min; i < max; i++){
-         fill(255,map(i,0,world.layers,255,0));
-         drawTextOffset(s,map(i,0,world.layers,0,p.x),map(i,0,world.layers,0,p.y));
-       }  
-     }
+      }
+    }
   }
   
-  private void drawTextOffset(char c, float x, float y){
-    drawTextOffset(String.valueOf(c),x,y);
+  private void drawCharacter(int min, int max, PVector p, char c, boolean fade, boolean descFade){
+     for(int i = min; i < max; i++){
+       if(fade){
+         if(descFade){
+           fill(255,map(i,min,max,255,0));
+         } else {
+           fill(255,map(i,min,max,0,255));
+         }
+       } else {
+         fill(255);
+       }
+       drawTextOffset(c,i,p);
+     }  
+  }
+ 
+  
+  private void drawTextOffset(char c, int i, PVector p){
+    drawTextOffset(String.valueOf(c),i,p);
   }
   
-  private void drawTextOffset(String s, float x, float y){
+  private void drawTextOffset(String s, int i, PVector p){
     pushMatrix();
-    translate(-textWidth(s)/2,world.gridSize-textWidth(s)/2-4);
-    text(s,x,y);
+      float x = map(i,0,world.depthDensity,0,p.x);
+      float y = map(i,0,world.depthDensity,0,p.y);
+      translate(-textWidth(s)/2,world.gridSize-textWidth(s)/2-4);
+      text(s,x,y);
     popMatrix();
   }
 }
