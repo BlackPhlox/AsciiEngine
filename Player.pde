@@ -17,7 +17,7 @@ class Player{
   float penalty;
   
   //Player states
-  boolean running,crouching,shooting;
+  boolean running,crouching,shooting,aiming;
   
   //Control interface
   boolean keyBoardAim = false;
@@ -118,7 +118,8 @@ class Player{
   }
   
   void inputMouse(){
-    shooting = (leftPress || playerSpace ? true : false);
+    shooting = (leftPress  || playerSpace ? true : false);
+    aiming =   (rightPress || playerLessThan ? true : false);
     if(mouseDirection != null){
         float sz = 2;//random(4, 8);
         Vec2 pp = world.getPlayerPos();
@@ -126,7 +127,7 @@ class Player{
         mouseZoom = getMouseAimZoom(pp);
         PVector p2 = particlesSpawnPos(pp,mouseDirection);
         
-        if(rightPress){
+        if(aiming){
           zoom = lerp(zoom,mouseZoom,zoomInSpeed);
           mouseDirection.setMag(zoom);
           translate(mouseDirection.x*-1,mouseDirection.y*-1);

@@ -14,18 +14,20 @@ void setup(){
   size(600,600);
   //fullScreen();
   world = new World(this,12,35,35);
-  world.setupPhysics();
   createWorld();
   world.player = new Player(100,100,5);
   world.items.add(new Item(200,150,10,"Gun"));
   smooth(1);
+  //frameRate(30);
+  frameRate(60);
+  //frameRate(120);
+  //frameRate(200);
 }
 
 void draw(){
   world.update();
-  //FOREGROUND
-  if(world.player.showMap) world.player.displayMiniMap();
-  drawInfo();
+
+  if(world.player != null) drawInfo();
 }
 
 private boolean aimGoNorth,aimGoSouth,aimGoEast,aimGoWest;
@@ -33,39 +35,42 @@ private boolean aimGoNorth,aimGoSouth,aimGoEast,aimGoWest;
 void keyPressed(){
   if (key == '+' && world.scl < 8) world.scl += 0.1;
   if (key == '-' && world.scl > -8) world.scl -= 0.1;
-  if (key == 'm' || key == 'M') world.player.showMap = !world.player.showMap;
-  if (key == 'k') world.player.keyBoardAim = !world.player.keyBoardAim;
-  setPressedMovementKeys(true, world.player.keyBoardAim);
+  if(world.player != null){
+    if (key == 'm' || key == 'M') world.player.showMap = !world.player.showMap;
+    if (key == 'k' || key == 'K') world.player.keyBoardAim = !world.player.keyBoardAim;
+  }
+  setPressedMovementKeys(true);
 }
 
 void keyReleased(){
-  setPressedMovementKeys(false, world.player.keyBoardAim);
+  setPressedMovementKeys(false);
 }
 
-private boolean playerGoNorth,playerGoSouth,playerGoEast,playerGoWest;
-private boolean playerSpace, playerShift, playerCtrl;
-void setPressedMovementKeys(boolean b, boolean usesKeyboardAim){
+private boolean goNorth,goSouth,goEast,goWest;
+private boolean playerSpace, playerShift, playerCtrl, playerLessThan;
+void setPressedMovementKeys(boolean b){
   switch (key) {
-    case 'W':     playerGoNorth = b; break;
-    case 'w':     playerGoNorth = b; break;
-    case 'S':     playerGoSouth = b; break;
-    case 's':     playerGoSouth = b; break;
-    case 'A':     playerGoWest  = b; break;
-    case 'a':     playerGoWest  = b; break;
-    case 'D':     playerGoEast  = b; break;
-    case 'd':     playerGoEast  = b; break;
+    case 'W':     goNorth = b; break;
+    case 'w':     goNorth = b; break;
+    case 'S':     goSouth = b; break;
+    case 's':     goSouth = b; break;
+    case 'A':     goWest  = b; break;
+    case 'a':     goWest  = b; break;
+    case 'D':     goEast  = b; break;
+    case 'd':     goEast  = b; break;
     case ' ':     playerSpace   = b; break;
+    case '<':     playerLessThan= b; break;
   }
   switch (keyCode) {
     case SHIFT:   playerShift = b; break;
     case CONTROL: playerCtrl  = b; break;
   }
-  if(!usesKeyboardAim){
+  if(world.player != null && !world.player.keyBoardAim){
     switch (keyCode) {
-      case UP:    playerGoNorth = b; break;
-      case DOWN:  playerGoSouth = b; break;
-      case LEFT:  playerGoWest  = b; break;
-      case RIGHT: playerGoEast  = b; break;
+      case UP:    goNorth = b; break;
+      case DOWN:  goSouth = b; break;
+      case LEFT:  goWest  = b; break;
+      case RIGHT: goEast  = b; break;
     }
   } else {
     switch (keyCode){
@@ -77,9 +82,7 @@ void setPressedMovementKeys(boolean b, boolean usesKeyboardAim){
   }
 }
 
-boolean showCenter = false;
 boolean leftPress,centerPress,rightPress;
-
 void setPressedMouseButtons(boolean b){
   switch(mouseButton){
     case LEFT: leftPress = b; break;
@@ -88,6 +91,7 @@ void setPressedMouseButtons(boolean b){
   }
 }
 
+boolean showCenter = false;
 void mousePressed(){
   //showCenter = !showCenter;
   setPressedMouseButtons(true);
@@ -97,10 +101,8 @@ void mouseReleased(){
   setPressedMouseButtons(false);
 }
 
-void drawInfo(){
-  stroke(255);
-  fill(255);
-  text(frameRate,20,height-40);
+void drawInfo(){  
+  text("Framerate: "+frameRate,20,height-40);
   if(showCenter){
     line(width/2,0,width/2,height);
     line(0,height/2,width,height/2);
@@ -115,6 +117,12 @@ void drawInfo(){
   text("Stamina: "+ world.player.stamina,20,height-140);
   text("Weight: "+ world.player.totalWeight,20,height-160);
   text("Penalty: "+ world.player.penalty,20,height-180);
+  String state = "";
+  if(!world.player.running && !world.player.crouching) state = "Walking";
+  if(world.player.running) state = "Running";
+  if(world.player.crouching) state = "Crouching";
+  text("MovementState: "+ state,20,height-200);
+  text((world.player.shooting?"Shooting":"")+" "+(rightPress?"Aiming":""),20,height-220);
 }
 
 void createWorld(){
