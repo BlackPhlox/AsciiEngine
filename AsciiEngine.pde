@@ -8,10 +8,7 @@ import org.jbox2d.common.*;
 import org.jbox2d.dynamics.*;
 import org.jbox2d.dynamics.contacts.*;
 
-
-public static Player player;
 World world;
-
 
 void setup(){
   size(600,600);
@@ -19,25 +16,20 @@ void setup(){
   world = new World(this,12,35,35);
   world.setupPhysics();
   createWorld();
-  player = new Player(100,100,5);
+  world.player = new Player(100,100,5);
   smooth(1);
-  
 }
 
-private boolean goNorth,goSouth,goEast,goWest,running,crouching;
-public static double penalty;
+private boolean goNorth,goSouth,goEast,goWest;
 
-
-float scl = 1;
 void draw(){
-  //BACKEND-BACKGROUND
   pushMatrix();
-  inputMovement();
-  inputMouse();
-  
+  world.player.inputMouse();
+  world.inputMovement();
   world.box2d.step();
   
-  drawWorld();
+  world.drawWorld();
+  
   if(keyBoardAim){
     pushStyle();
       stroke(255);
@@ -48,24 +40,8 @@ void draw(){
   
   popMatrix();
   //FOREGROUND
-  if(player.showMap) player.displayMiniMap();
+  if(world.player.showMap) world.player.displayMiniMap();
   drawInfo();
-}
-
-void drawWorld(){
-  background(0);
-  Vec2 pp = world.box2d.getBodyPixelCoord(player.body);
-  pushMatrix();
-    translate(-(width * (scl - 1) / 2),-(height * (scl - 1) / 2));
-    scale(scl);
-    pushMatrix();
-      translate(-pp.x+width/2, -pp.y+height/2);
-      world.displayBackground();
-      player.display();
-      world.displayParticles();
-      world.displayForeground();
-    popMatrix();
-  popMatrix();
 }
 
 boolean showCenter = false;
@@ -73,9 +49,9 @@ boolean keyBoardAim = false;
 float cursorMovementSpeed = 5;
 PVector cursor = new PVector();
 void keyPressed(){
-  if (key == '+' && scl < 8) scl += 0.1;
-  if (key == '-' && scl > -8) scl -= 0.1;
-  if (key == 'm' || key == 'M') player.showMap = !player.showMap;
+  if (key == '+' && world.scl < 8) world.scl += 0.1;
+  if (key == '-' && world.scl > -8) world.scl -= 0.1;
+  if (key == 'm' || key == 'M') world.player.showMap = !world.player.showMap;
   if (key == 'k') keyBoardAim = !keyBoardAim;
   setPressedMovementKeys(true, keyBoardAim);
 }
@@ -102,10 +78,17 @@ void setPressedMovementKeys(boolean b, boolean usesKeyboardAim){
       case LEFT:  goWest  = b; break;
       case RIGHT: goEast  = b; break;
     }
+  } else {
+    switch (keyCode){
+      case UP:    cursor.add(0,-1*cursorMovementSpeed); break;
+      case DOWN:  cursor.add(0,1*cursorMovementSpeed); break;
+      case LEFT:  cursor.add(-1*cursorMovementSpeed,0); break;
+      case RIGHT: cursor.add(1*cursorMovementSpeed,0); break;
+    }
   }
   switch (keyCode) {
-    case SHIFT: running = b; break;
-    case ALT: crouching = b; break;
+    case SHIFT: world.player.running = b; break;
+    case ALT: world.player.crouching = b; break;
   }
 }
 
@@ -127,93 +110,6 @@ void mouseReleased(){
   }
 }
 
-void cursorMovement(){
-  if(keyPressed && keyBoardAim){
-    switch (keyCode) {
-      case UP:    cursor.add(0,-1*cursorMovementSpeed); break;
-      case DOWN:  cursor.add(0,1*cursorMovementSpeed); break;
-      case LEFT:  cursor.add(-1*cursorMovementSpeed,0); break;
-      case RIGHT: cursor.add(1*cursorMovementSpeed,0); break;
-    }
-  }
-}
-
-void inputMovement(){
-  cursorMovement();
-  if(player != null) {
-    PVector delta = new PVector();
-    if (goNorth) delta.y += (player.walkSpeed * player.walkSpeedMult);
-    if (goSouth) delta.y -= (player.walkSpeed * player.walkSpeedMult);
-    if (goEast)  delta.x += (player.walkSpeed * player.walkSpeedMult);
-    if (goWest)  delta.x -= (player.walkSpeed * player.walkSpeedMult);
-    if (crouching){
-      delta.x *= player.crouchSpeedRedux;
-      delta.y *= player.crouchSpeedRedux;
-    } else if (running && player.stamina > 0 && penalty <= 0) {
-        delta.x *= (player.runningSpeed - player.runningSpeedMult+1);
-        delta.y *= (player.runningSpeed - player.runningSpeedMult+1);
-        if(goNorth||goEast||goSouth||goWest){
-            player.stamina -= (player.fatigueRate * player.fatigueMult);
-        }
-    }
-    if(player.stamina <= 0){
-        penalty = player.recoverRate;
-    }
-    if(penalty > 0 || player.stamina < player.maxStamina){
-        player.stamina += player.restitutionRate;
-    }
-    player.move(delta);
-
-    if(penalty > 0) penalty--;
-    }       
-}
-
-float zoom;
-float mouseZoom;
-
-//Specified by the weapon
-float maxZoom = 500;
-float zoomInSpeed = 0.05;
-float zoomOutSpeed = 0.2;
-float minVel = 100;
-float maxVel = 120;
-void inputMouse(){
-    if(player.mouseDirection != null){
-      float sz = 2;//random(4, 8);
-      Vec2 pp = world.box2d.getBodyPixelCoord(player.body);
-      
-      mouseZoom = getMouseAimZoom(pp);
-      PVector p2 = particlesSpawnPos(pp,player.mouseDirection);
-      
-      if(rightPress){
-        zoom = lerp(zoom,mouseZoom,zoomInSpeed);
-        player.mouseDirection.setMag(zoom);
-        translate(player.mouseDirection.x*-1,player.mouseDirection.y*-1);
-      }
-      
-      float ran = random(minVel,maxVel);
-      player.mouseDirection.setMag(ran);
-      
-      boolean isBullet = true;
-      if(leftPress) world.particles.add(new Particle(p2.x,p2.y,new Vec2(player.mouseDirection.x*0.5,player.mouseDirection.y*-1*0.5), sz, isBullet));
-      if(player.mouseDirection != null){
-        player.mouseDirection.setMag(zoom);
-        translate(player.mouseDirection.x*-1,player.mouseDirection.y*-1);
-      }
-    }
-    zoom = lerp(zoom,0,zoomOutSpeed);
-}
-
-float getMouseAimZoom(Vec2 playerPos){
-  return constrain(PVector.dist(new PVector(playerPos.x,playerPos.y),player.mouseDirection),0,maxZoom);
-}
-
-//Normalizes the mouseDirection Vector
-PVector particlesSpawnPos(Vec2 playerPos, PVector mouseDirection){
-  mouseDirection.normalize();
-  return PVector.add(new PVector(playerPos.x,playerPos.y),mouseDirection);
-}
-
 void drawInfo(){
   stroke(255);
   fill(255);
@@ -222,20 +118,16 @@ void drawInfo(){
     line(width/2,0,width/2,height);
     line(0,height/2,width,height/2);
   }
-  Vec2 pp = world.box2d.getBodyPixelCoord(player.body);
+  Vec2 pp = world.getPlayerPos();
   text("Player : "+floor(-pp.x+width/2)+ " " +floor(-pp.y+height/2), 20,height-20);
   text("Mouse  : "+(mouseX) + " " + (mouseY),20,height-60);
-  Vec2 gridPP = toGrid(pp,world.gridSize);
+  Vec2 gridPP = world.toGrid(pp);
   text("To grid: "+gridPP.x + " " + gridPP.y,20,height-80);
-  text("Zoom lvl: "+ scl,20,height-100);
+  text("Zoom lvl: "+ nfc(world.scl,1),20,height-100);
   if(keyBoardAim) text("Keyboard Only",20,height-120);
-  text("Stamina: "+ player.stamina,20,height-140);
-  text("Weight: "+ player.totalWeight,20,height-160);
-  text("Penalty: "+ penalty,20,height-180);
-}
-
-public static Vec2 toGrid(Vec2 v, int gridSize){
-  return new Vec2(round(v.x/gridSize),round(v.y/gridSize));
+  text("Stamina: "+ world.player.stamina,20,height-140);
+  text("Weight: "+ world.player.totalWeight,20,height-160);
+  text("Penalty: "+ world.player.penalty,20,height-180);
 }
 
 void createWorld(){
@@ -285,7 +177,6 @@ void beginContact(Contact cp) {
     p2.body.setLinearDamping(5);
     //p2.change();
   }
-
 }
 
 // Objects stop touching each other
