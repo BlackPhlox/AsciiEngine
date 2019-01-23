@@ -8,7 +8,6 @@ enum TileType{
   LADDER("["),
   FLOOR("."),
   ROOF("R"),
-  EMPTY(" "),
   
   
   BLOCK(DrawType.BOX),

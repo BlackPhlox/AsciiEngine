@@ -28,7 +28,6 @@ class Wall extends Static{
 
   // Draw the boundary, if it were at an angle we'd have to do something fancier
   void display() {
-    rectMode(CENTER);
     if(walls != null){
       for(int i = 0; i < wallHeight*wallWidth; i++){
         if(walls[i]!=null) walls[i].display();

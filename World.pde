@@ -35,6 +35,7 @@ class World{
     textSize(gridSize);
     setupPhysics();
     tiles = new HashSet<Tile>();
+    rectMode(CENTER);
   }
   
   void setupPhysics(){
@@ -76,13 +77,24 @@ class World{
         displayItems();
         displayParticles();
         displayTiles();
+        TilePainter tp = new TilePainter(world);
+        tp.drawCustom(20,34);
+        tp.drawCustom(21,34);
+        tp.drawCustom(22,34);
+        tp.drawCustom(23,34);
+        tp.drawCustom(24,34);
+        tp.drawCustom(25,34);
+        tp.drawCustom(26,34);
+        tp.drawCustom(27,34);
+        tp.drawCustom(28,34);
+        
       popMatrix();
     popMatrix();
   }
   
   void displayBackground(){
     //layers = mouseX;
-    //depthDensity = mouseY;
+    //depthDensity = mouseY-100;
   }
   
   void displayTiles(){

@@ -72,6 +72,7 @@ void createWorld(){
     }
   }
   
+  
   //working (kinda)
   new Wall(world,1,1,34,1); //x
   new Wall(world,1,1,1,34); //y

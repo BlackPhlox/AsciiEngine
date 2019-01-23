@@ -6,8 +6,8 @@ class TilePainter{
   
   void drawTile(TileType t,int x,int y){
     PVector p = calculateDepthVector(x,y);
-    stroke(255);
-    //p.limit(world.depth);
+    //Creates a spherical bulge of tiles around the playerPos
+    //p.limit(world.depthDensity);
     pushMatrix();
     translate(x*world.gridSize,y*world.gridSize);
     drawDebug(p);
@@ -19,7 +19,6 @@ class TilePainter{
       case LADDER: drawCharacter(0,world.layers-1,p,t.getChar()   ,false,false);break;
       case ROOF:   drawRoof(                      p,world.layers)              ;break;
       case FLOOR:  drawCharacter(0,1,             p,t.getChar()   ,false,false);break;
-    //case EMPTY:  drawString(0,1,p,t.getIcon());break;
       
       case SQUARE: drawSquare(p);break;
       case BLOCK:  drawBox(p,10);break;
@@ -28,12 +27,27 @@ class TilePainter{
      popMatrix();   
   }
   
+  void drawCustom(int x,int y){
+    PVector p = calculateDepthVector(x,y);
+    //Creates a spherical bulge of tiles around the playerPos
+    //p.limit(world.depthDensity);
+    pushMatrix();
+    translate(x*world.gridSize,y*world.gridSize);
+    //The custom part
+      drawCharacter(4,world.layers,p,'#',true,false);
+    popMatrix();   
+  }
+  
   PVector calculateDepthVector(int x, int y){
     Vec2 v = world.getPlayerPos();
     return PVector.sub(
         new PVector(x*world.gridSize,y*world.gridSize),
         new PVector(v.x,v.y)
     );
+  }
+  
+  PVector calculateLayerPos(int layer, PVector depthVector){
+    return new PVector(map(layer,0,world.depthDensity,0,depthVector.x),map(layer,0,world.depthDensity,0,depthVector.y));
   }
   
   void drawDebug(PVector p){
@@ -51,27 +65,28 @@ class TilePainter{
   
   private void drawSquare(PVector p){
     fill(255,50);
-    PVector bottom = new PVector(map(0,0,world.depthDensity,0,p.x),map(0,0,world.depthDensity,0,p.y));
+    PVector bottom = calculateLayerPos(0,p);
     square(bottom.x,bottom.y,world.gridSize);
   }
   
   private void drawRoof(PVector p, int roofHeight){
     fill(50);
-    PVector top = new PVector(map(roofHeight,0,world.depthDensity,0,p.x),map(roofHeight,0,world.depthDensity,0,p.y));
-    square(top.x,top.y,world.gridSize*2);
+    PVector top = calculateLayerPos(roofHeight,p);
+    square(top.x,top.y,world.gridSize);//size should use depthDensity
   }
   
   private void drawBox(PVector p, int boxHeight){
     fill(255);
-    PVector bottom = new PVector(map(0,0,world.depthDensity,0,p.x),map(0,0,world.depthDensity,0,p.y));
-    //rect(bottom.x,bottom.y,world.gridSize,world.gridSize);
-    PVector top = new PVector(map(boxHeight,0,world.depthDensity,0,p.x),map(boxHeight,0,world.depthDensity,0,p.y));
+    PVector bottom = calculateLayerPos(0,p);
+    rect(bottom.x,bottom.y,world.gridSize,world.gridSize);
+    PVector top = calculateLayerPos(boxHeight,p);
     float size = world.gridSize/2;
+    stroke(255);
     line(bottom.x-size,bottom.y-size,top.x-size,top.y-size);
     line(bottom.x+size,bottom.y-size,top.x+size,top.y-size);
     line(bottom.x-size,bottom.y+size,top.x-size,top.y+size);
     line(bottom.x+size,bottom.y+size,top.x+size,top.y+size);
-    square(top.x,top.y,world.gridSize*1.4);
+    square(top.x,top.y,world.gridSize);//size should use depthDensity
   }
   
   private void drawString(int min, PVector p, String s, boolean fade, boolean descFade){
