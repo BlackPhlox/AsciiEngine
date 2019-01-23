@@ -16,9 +16,27 @@ class Player{
           crouchSpeedRedux = 0.5;
   float penalty;
   
-  //Movement states
-  boolean running,crouching;
+  //Player states
+  boolean running,crouching,shooting;
   
+  //Control interface
+  boolean keyBoardAim = false;
+  PVector cursor = new PVector(width/2,height/2);
+  float cursorMovementSpeed = 5;
+  
+  //Minimap
+  int miniMapGridSize = 5;
+  
+  //Aim Zoom
+  float zoom;
+  float mouseZoom;
+  
+  //Specified by the weapon
+  float maxZoom = 500;
+  float zoomInSpeed = 0.05;
+  float zoomOutSpeed = 0.2;
+  float minVel = 100;
+  float maxVel = 120;
             
   Player(int x, int y, int r){
     this.radius = r;
@@ -39,7 +57,11 @@ class Player{
       stroke(0);
       strokeWeight(1);
       //Calc mouseDirection
-      mouseDirection = PVector.sub(new PVector(mouseX,mouseY),new PVector(width/2,height/2));
+      if(keyBoardAim){
+        mouseDirection = PVector.sub(cursor,new PVector(width/2,height/2));
+      } else {
+        mouseDirection = PVector.sub(new PVector(mouseX,mouseY),new PVector(width/2,height/2));
+      }
       rotate(mouseDirection.heading());
       fill(255);
       ellipse(0, 0, radius*2, radius*2);
@@ -47,7 +69,6 @@ class Player{
     popMatrix();
   }
   
-  int miniMapGridSize = 5;
   void displayMiniMap(){
     Vec2 pos = world.box2d.getBodyPixelCoord(body);
     Vec2 posGrid = world.toGrid(pos);
@@ -96,16 +117,8 @@ class Player{
     body.setAngularVelocity(0);
   }
   
-  float zoom;
-  float mouseZoom;
-  
-  //Specified by the weapon
-  float maxZoom = 500;
-  float zoomInSpeed = 0.05;
-  float zoomOutSpeed = 0.2;
-  float minVel = 100;
-  float maxVel = 120;
   void inputMouse(){
+    shooting = (leftPress || playerSpace ? true : false);
     if(mouseDirection != null){
         float sz = 2;//random(4, 8);
         Vec2 pp = world.getPlayerPos();
@@ -123,7 +136,7 @@ class Player{
         mouseDirection.setMag(ran);
         
         boolean isBullet = true;
-        if(leftPress) world.particles.add(new Particle(p2.x,p2.y,new Vec2(mouseDirection.x*0.5,mouseDirection.y*-1*0.5), sz, isBullet));
+        if(shooting) world.particles.add(new Particle(p2.x,p2.y,new Vec2(mouseDirection.x*0.5,mouseDirection.y*-1*0.5), sz, isBullet));
         if(mouseDirection != null){
           mouseDirection.setMag(zoom);
           translate(mouseDirection.x*-1,mouseDirection.y*-1);

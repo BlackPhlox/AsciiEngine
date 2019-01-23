@@ -17,97 +17,84 @@ void setup(){
   world.setupPhysics();
   createWorld();
   world.player = new Player(100,100,5);
+  world.items.add(new Item(200,150,10,"Gun"));
   smooth(1);
 }
 
-private boolean goNorth,goSouth,goEast,goWest;
-
 void draw(){
-  pushMatrix();
-  world.player.inputMouse();
-  world.inputMovement();
-  world.box2d.step();
-  
-  world.drawWorld();
-  
-  if(keyBoardAim){
-    pushStyle();
-      stroke(255);
-      strokeWeight(5);
-      point(cursor.x,cursor.y);
-    popStyle();
-  }
-  
-  popMatrix();
+  world.update();
   //FOREGROUND
   if(world.player.showMap) world.player.displayMiniMap();
   drawInfo();
 }
 
-boolean showCenter = false;
-boolean keyBoardAim = false;
-float cursorMovementSpeed = 5;
-PVector cursor = new PVector();
+private boolean aimGoNorth,aimGoSouth,aimGoEast,aimGoWest;
+
 void keyPressed(){
   if (key == '+' && world.scl < 8) world.scl += 0.1;
   if (key == '-' && world.scl > -8) world.scl -= 0.1;
   if (key == 'm' || key == 'M') world.player.showMap = !world.player.showMap;
-  if (key == 'k') keyBoardAim = !keyBoardAim;
-  setPressedMovementKeys(true, keyBoardAim);
+  if (key == 'k') world.player.keyBoardAim = !world.player.keyBoardAim;
+  setPressedMovementKeys(true, world.player.keyBoardAim);
 }
 
 void keyReleased(){
-  setPressedMovementKeys(false, keyBoardAim);
+  setPressedMovementKeys(false, world.player.keyBoardAim);
 }
 
+private boolean playerGoNorth,playerGoSouth,playerGoEast,playerGoWest;
+private boolean playerSpace, playerShift, playerCtrl;
 void setPressedMovementKeys(boolean b, boolean usesKeyboardAim){
   switch (key) {
-    case 'W':     goNorth = b; break;
-    case 'w':     goNorth = b; break;
-    case 'S':     goSouth = b; break;
-    case 's':     goSouth = b; break;
-    case 'A':     goWest  = b; break;
-    case 'a':     goWest  = b; break;
-    case 'D':     goEast  = b; break;
-    case 'd':     goEast  = b; break;
+    case 'W':     playerGoNorth = b; break;
+    case 'w':     playerGoNorth = b; break;
+    case 'S':     playerGoSouth = b; break;
+    case 's':     playerGoSouth = b; break;
+    case 'A':     playerGoWest  = b; break;
+    case 'a':     playerGoWest  = b; break;
+    case 'D':     playerGoEast  = b; break;
+    case 'd':     playerGoEast  = b; break;
+    case ' ':     playerSpace   = b; break;
+  }
+  switch (keyCode) {
+    case SHIFT:   playerShift = b; break;
+    case CONTROL: playerCtrl  = b; break;
   }
   if(!usesKeyboardAim){
     switch (keyCode) {
-      case UP:    goNorth = b; break;
-      case DOWN:  goSouth = b; break;
-      case LEFT:  goWest  = b; break;
-      case RIGHT: goEast  = b; break;
+      case UP:    playerGoNorth = b; break;
+      case DOWN:  playerGoSouth = b; break;
+      case LEFT:  playerGoWest  = b; break;
+      case RIGHT: playerGoEast  = b; break;
     }
   } else {
     switch (keyCode){
-      case UP:    cursor.add(0,-1*cursorMovementSpeed); break;
-      case DOWN:  cursor.add(0,1*cursorMovementSpeed); break;
-      case LEFT:  cursor.add(-1*cursorMovementSpeed,0); break;
-      case RIGHT: cursor.add(1*cursorMovementSpeed,0); break;
+      case UP:     aimGoNorth = b; break;
+      case DOWN:   aimGoSouth = b; break;
+      case LEFT:   aimGoWest  = b; break;
+      case RIGHT:  aimGoEast  = b; break;
     }
-  }
-  switch (keyCode) {
-    case SHIFT: world.player.running = b; break;
-    case ALT: world.player.crouching = b; break;
   }
 }
 
+boolean showCenter = false;
 boolean leftPress,centerPress,rightPress;
+
+void setPressedMouseButtons(boolean b){
+  switch(mouseButton){
+    case LEFT: leftPress = b; break;
+    case CENTER: centerPress = b; break;
+    case RIGHT: rightPress = b; break;
+  }
+}
+
 void mousePressed(){
   //showCenter = !showCenter;
-  switch(mouseButton){
-    case LEFT: leftPress = true; break;
-    case CENTER: centerPress = true; break;
-    case RIGHT: rightPress = true; break;
-  }
+  setPressedMouseButtons(true);
 }
 
 void mouseReleased(){
-  switch(mouseButton){
-    case LEFT: leftPress = false; break;
-    case CENTER: centerPress = false; break;
-    case RIGHT: rightPress = false; break;
-  }
+  setPressedMouseButtons(false);
 }
 
 void drawInfo(){
@@ -124,7 +111,7 @@ void drawInfo(){
   Vec2 gridPP = world.toGrid(pp);
   text("To grid: "+gridPP.x + " " + gridPP.y,20,height-80);
   text("Zoom lvl: "+ nfc(world.scl,1),20,height-100);
-  if(keyBoardAim) text("Keyboard Only",20,height-120);
+  if(world.player.keyBoardAim) text("Keyboard Only",20,height-120);
   text("Stamina: "+ world.player.stamina,20,height-140);
   text("Weight: "+ world.player.totalWeight,20,height-160);
   text("Penalty: "+ world.player.penalty,20,height-180);
