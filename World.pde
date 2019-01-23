@@ -61,7 +61,7 @@ class World{
       if(player != null){
         displayKeyboardAim();
         aimMovement();
-        if(player.showMap) player.displayMiniMap();
+        if(player.showMiniMap) player.displayMiniMap();
       }
     popMatrix();
   }
@@ -179,6 +179,7 @@ class World{
   
   Vec2 getPlayerPos(){
     if(player == null) {
+      //No player found, set camera to world position (default is the center of the world)
       PVector p = PVector.sub(new PVector(w*gridSize/2,h*gridSize/2),worldPos);
       return new Vec2(p.x,p.y);
     }

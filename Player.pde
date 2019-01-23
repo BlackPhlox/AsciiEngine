@@ -1,5 +1,5 @@
 class Player{
-  boolean showMap = false;
+  boolean showMiniMap = false;
   PVector mouseDirection;
   int radius;
   
