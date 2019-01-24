@@ -17,12 +17,13 @@ class NPC extends Dynamic{
           crouchSpeedRedux = 0.5;
   float penalty;
   
-  //Player states
-  boolean running,crouching,shooting,aiming;
+  //Character states
+  boolean running,crouching,shooting,aiming,following;
   
             
-  NPC(int x, int y, int r, String name){
+  NPC(int x, int y, int r, String name, boolean following){
     this.name = name;
+    this.following = following;
     this.radius = r;
     setupPhysics(x,y);
   }
@@ -37,7 +38,7 @@ class NPC extends Dynamic{
     
     Vec2 pos = world.box2d.getBodyPixelCoord(body);
     PVector p = new PVector(world.getPlayerPos().x,world.getPlayerPos().y*-1);
-    if(PVector.dist(new PVector(world.getPlayerPos().x,world.getPlayerPos().y),new PVector(pos.x,pos.y))>35) move(p.sub(new PVector(pos.x,pos.y*-1)));
+    if(following && PVector.dist(new PVector(world.getPlayerPos().x,world.getPlayerPos().y),new PVector(pos.x,pos.y))>35) move(p.sub(new PVector(pos.x,pos.y*-1)));
     pushMatrix();
       translate(pos.x, pos.y);
       stroke(0);
