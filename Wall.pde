@@ -43,6 +43,8 @@ class Wall extends Static{
   }
   
   void drawRect(){
+    noFill();
+    stroke(255);
     square(x*world.gridSize,y*world.gridSize,world.gridSize);
   }
   

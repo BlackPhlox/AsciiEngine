@@ -16,7 +16,8 @@ void setup(){
   world = new World(this,35,35);
   createWorld();
   world.player = new Player(100,100,5);
-  world.items.add(new Item(200,150,10,"Gun"));
+  world.dynamics.add(new Item(200,150,10,"Gun"));
+  world.dynamics.add(new NPC(120,120,5,"James"));
   smooth(1);
   //frameRate(30);
   frameRate(60);

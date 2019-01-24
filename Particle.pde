@@ -1,4 +1,4 @@
-class Particle {
+class Particle extends Dynamic{
   // We need to keep track of a Body and a radius
   Body body;
   float r;

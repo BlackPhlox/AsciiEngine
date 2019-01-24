@@ -1,4 +1,4 @@
-class Item{
+class Item extends Dynamic{
   Body body;
   String name;
   String disc;

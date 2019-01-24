@@ -13,8 +13,8 @@ class World{
   Player player;
   
   HashSet<Tile> tiles;
+  ArrayList<Dynamic> dynamics  = new ArrayList<Dynamic>();
   ArrayList<Particle> particles = new ArrayList<Particle>();
-  ArrayList<Item> items = new ArrayList<Item>();
   
   //World without a player
   PVector worldPos = new PVector();
@@ -74,7 +74,7 @@ class World{
         translate(-pp.x+width/2, -pp.y+height/2);
         displayBackground();
         if(player != null) player.display();
-        displayItems();
+        displayDynamics();
         displayParticles();
         displayTiles();
         TilePainter tp = new TilePainter(world);
@@ -103,9 +103,9 @@ class World{
     }
   }
   
-  void displayItems(){
-    for(Item i : items){
-      i.display();
+  void displayDynamics(){
+    for(Dynamic d : dynamics){
+      d.display();
     }
   }
   
