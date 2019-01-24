@@ -20,6 +20,11 @@ class NPC extends Dynamic{
   //Character states
   boolean running,crouching,shooting,aiming,following;
   
+  
+  boolean debug;
+  float minDist = 50;
+
+  
   //Spawn
   int x, y;
             
@@ -30,6 +35,7 @@ class NPC extends Dynamic{
     this.following = following;
     this.radius = r;
     setupPhysics(x,y);
+    debug = true;
   }
   
   Body body;
@@ -41,14 +47,36 @@ class NPC extends Dynamic{
   void display() {
     
     Vec2 pos = world.box2d.getBodyPixelCoord(body);
-    
+    Vec2 pp = world.getPlayerPos();
     if(following){
-      PVector p = new PVector(world.getPlayerPos().x,world.getPlayerPos().y*-1);
-      if(PVector.dist(new PVector(p.x,p.y),new PVector(pos.x,pos.y))>35) move(p.sub(new PVector(pos.x,pos.y*-1)));
+      PVector p = new PVector(pp.x,pp.y*-1);
+      float dist = PVector.dist(new PVector(pp.x,pp.y),new PVector(pos.x,pos.y))*2;
+      if(dist > minDist) move(p.sub(new PVector(pos.x,pos.y*-1)));
+      
+      if(debug){
+        stroke(255,0,0);
+        noFill();
+        circle(pos.x,pos.y,dist);
+        stroke(0,255,0);
+        circle(pos.x,pos.y,minDist);
+      } 
     }
     if(!following){ //Waiting, a trader etc
       PVector p = new PVector(x,y*-1);
-      if(PVector.dist(new PVector(p.x,p.y),new PVector(pos.x,pos.y))>35) move(p.sub(new PVector(pos.x,pos.y*-1)));
+      float dist = PVector.dist(new PVector(x,y),new PVector(pos.x,pos.y))*2;
+      if(dist > minDist) move(p.sub(new PVector(pos.x,pos.y*-1)));
+      
+      if(debug){
+        stroke(255);
+        strokeWeight(5);
+        point(x,y);
+        strokeWeight(1);
+        noFill();
+        stroke(255,0,0);
+        circle(pos.x,pos.y,dist);
+        stroke(0,255,0);
+        circle(pos.x,pos.y,minDist);
+      }
     }
     
     pushMatrix();
