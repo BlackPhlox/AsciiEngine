@@ -37,6 +37,8 @@ class Player{
   float zoomOutSpeed = 0.2;
   float minVel = 100;
   float maxVel = 120;
+  
+  int bpm = 60;
             
   Player(int x, int y, int r){
     this.radius = r;
@@ -154,5 +156,25 @@ class Player{
   PVector particlesSpawnPos(Vec2 playerPos, PVector mouseDirection){
     mouseDirection.normalize();
     return PVector.add(new PVector(playerPos.x,playerPos.y),mouseDirection);
+  }
+  
+  Dynamic getNearest(){
+    return getNearest(Dynamic.class);
+  }
+  
+  Dynamic getNearest(Class c){
+    float nearestDist = Float.MAX_VALUE;
+    Dynamic nearest = null;
+    for(Dynamic d : world.dynamics){
+      if(d.body != null /*&& d.getClass() == c  <- Get NullPointer*/){
+        PVector v = new PVector(world.box2d.getBodyPixelCoord(d.body).x,world.box2d.getBodyPixelCoord(d.body).y);
+        PVector pp = new PVector(world.getPlayerPos().x,world.getPlayerPos().y);
+        if(PVector.dist(v,pp) < nearestDist){
+          nearestDist = PVector.dist(v,pp);
+          nearest = d;
+        }
+      }
+    }
+    return nearest;
   }
 }

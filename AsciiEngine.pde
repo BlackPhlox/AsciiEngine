@@ -23,27 +23,28 @@ void setup() {
   createWorld();
   world.player = new Player(100, 100, 5);
   world.dynamics.add(new Item(200, 150, 10, "Gun"));
-  world.dynamics.add(new NPC(120, 120, 5, "James", true));
-  world.dynamics.add(new NPC(120, 120, 5, "John", false));
-  world.dynamics.add(new NPC(120, 120, 5, "Jane", true));
+  world.dynamics.add(new NPC(120, 120, 5, "James"));
+  world.dynamics.add(new NPC(140, 90, 5, "John"));
+  world.dynamics.add(new NPC(150, 190, 5, "Jane"));
   smooth(1);
   frameRate(fps);
-
   setupGUI();
 }
 
-int every = 60; //bpm
-boolean pre;
+
 void draw() {
   world.update();
   drawInfo();
-
-  boolean f = frameCount % round(fps/(every/60)) == 0;
+  updateHeartbeatSensor();
   
+}
+
+boolean pre;
+void updateHeartbeatSensor(){
+  boolean f = frameCount % round(fps/(world.player.bpm/60)) == 0;
   heartRateChart.push("incoming", 
     (f?15:0)+(pre?-0.75:0)*20
   );
-  
   if(f) pre = true; else pre = false;
 }
 
@@ -114,13 +115,17 @@ Chart heartRateChart;
 void setupGUI() {
   cp5 = new ControlP5(this);
 
-  cp5.begin(cp5.addBackground("dialogWindow").close());
-
+  Group dialogWindow = cp5.addGroup("dialogWindow")
+                         .setSize(width/2,height)
+                         .setBackgroundColor(color(200,50))
+                         .close();
+                         
   cp5.addButton("d1")
     .setLabel("Dialog")
     .setPosition(0, 0)
     .setSize(width/2, 20)
     .lock()
+    .setGroup(dialogWindow);
     ;
 
   cp5.addButton("d2")
@@ -128,6 +133,7 @@ void setupGUI() {
     .setPosition(20, 40)
     .setSize(width/2-40, 20)
     .lock()
+    .setGroup(dialogWindow);
     ;
 
   cp5.addToggle("d3")
@@ -135,6 +141,7 @@ void setupGUI() {
     .setPosition(20, 80)
     .setSize(45, 20)
     .setMode(Toggle.CHECKBOX)
+    .setGroup(dialogWindow);
     ;
 
   cp5.addToggle("d4")
@@ -142,102 +149,102 @@ void setupGUI() {
     .setPosition(80, 80)
     .setSize(45, 20)
     .setMode(Toggle.CHECKBOX)
+    .setGroup(dialogWindow);
+    ; 
+    
+  cp5.addToggle("d5")
+    .setLabel("Debug")
+    .setPosition(140, 80)
+    .setSize(45, 20)
+    .setMode(Toggle.CHECKBOX)
+    .setGroup(dialogWindow);
     ;
-  cp5.end();   
+  
+  cp5.addToggle("d6")
+    .setLabel("Empty")
+    .setPosition(200, 80)
+    .setSize(45, 20)
+    .setMode(Toggle.CHECKBOX)
+    .setGroup(dialogWindow);
+    ; 
 
-  cp5.begin(cp5.addBackground("inventoryWindow").setPosition(width-width/2, 0).close());
+  Group inventoryWindow = cp5.addGroup("inventoryWindow")
+                           .setPosition(width-width/2, 0)
+                           .setSize(width/2,height)
+                           .setBackgroundColor(color(200,50))
+                           .close();
+                         
 
   cp5.addButton("i1")
     .setLabel("Inventory")
     .setPosition(0, 0)
     .setSize(width/2, 20)
     .lock()
+    .setGroup(inventoryWindow);
     ;
-
-  cp5.end();
-
-  cp5.begin(cp5.addBackground("statsWindow").close());
+  
+  Group statsWindow = cp5.addGroup("statsWindow")
+                           .setSize(width/2,height)
+                           .setBackgroundColor(color(200,50))
+                           .close();
 
   heartRateChart = cp5.addChart("heartRate")
-    .setPosition(50, 50)
-    .setSize(200, 100)
+    .setPosition(0, 20)
+    .setSize(width/2-80, 100)
     .setRange(-20, 20)
     .setView(Chart.LINE) // use Chart.LINE, Chart.PIE, Chart.AREA, Chart.BAR_CENTERED
     .setStrokeWeight(1.5)
     .setColorCaptionLabel(color(40))
+    .setGroup(statsWindow);
     ;
-
+    
   heartRateChart.addDataSet("incoming");
   heartRateChart.setData("incoming", new float[100]);
-
-  cp5.addSlider("v1", 0, 255).setSize(width/2-28, 0).linebreak();
-  cp5.addSlider("v2", 0, 255).linebreak();
-  cp5.addSlider("v3", 0, 200).linebreak();
-  cp5.addSlider("v4", 0, 300).linebreak();
-  cp5.addSlider("v5", 0, 400).linebreak();
-
-  cp5.addSlider("v6", 0, 255).linebreak();
-  cp5.addSlider("v7", 0, 255).linebreak();
-  cp5.addSlider("v8", 0, 200).linebreak();
-  cp5.addSlider("v9", 0, 300).linebreak();
-  cp5.addSlider("v10", 0, 400);
-
+  
+  cp5.addButton("b1")
+     .setLabel("Bpm")
+     .setPosition(width/2-80,20)
+     .setSize(80,100)
+     .setGroup(statsWindow);
+     
   cp5.addButton("s1")
-    .setLabel("Stats")
-    .setPosition(0, 0)
-    .setSize(width/2, 20)
-    .lock()
+     .setLabel("Stats")
+     .setPosition(0, 0)
+     .setSize(width/2, 20)
+     .lock()
+     .setGroup(statsWindow)
+     ;
+  
+  Group statGroup = cp5.addGroup("statGroup")
+                      .setGroup(statsWindow)
+                      .setPosition(0,120)
+                      .setSize(width/2,0);
+  
+  cp5.addSlider("v1", 0, 255)
+    .setPosition(10,10)
     ;
-  cp5.end();
 
-  cp5.getController("v1").setCaptionLabel("XP");
-  style("v1");
-
-  // change the caption label for controller v1 and apply styles
-  cp5.getController("v2").setCaptionLabel("Health");
-  style("v2");
-
-  // change the caption label for controller v2 and apply styles
-  cp5.getController("v3").setCaptionLabel("Stamina");
-  style("v3");
-
-  // change the caption label for controller v3 and apply styles
-  cp5.getController("v4").setCaptionLabel("Agility");
-  style("v4");
-
-  // change the caption label for controller v3 and apply styles
-  cp5.getController("v5").setCaptionLabel("Dexterity");
-  style("v5");
-
-
-  cp5.getController("v6").setCaptionLabel("Strength");
-  style("v6");
-
-  // change the caption label for controller v1 and apply styles
-  cp5.getController("v7").setCaptionLabel("Perception");
-  style("v7");
-
-  // change the caption label for controller v2 and apply styles
-  cp5.getController("v8").setCaptionLabel("Stamina");
-  style("v8");
-
-  // change the caption label for controller v3 and apply styles
-  cp5.getController("v9").setCaptionLabel("Charisma");
-  style("v9");
-
-  // change the caption label for controller v3 and apply styles
-  cp5.getController("v10").setCaptionLabel("Intelligence");
-  style("v10");
+  addStat("v1","Health",statGroup);
 }
 
-void style(String theControllerName) {
-  Controller c = cp5.getController(theControllerName);
-  // adjust the height of the controller
-  c.setHeight(15);
+void addStat(String cName, String labelName, Group g){
+  Controller c1 = cp5.getController(cName);
+  c1.setCaptionLabel(labelName);
+  setStatStyle(c1);
+  c1.setColorBackground(color(50,0,0));
+  c1.setColorForeground(color(255,0,0));
+  c1.setGroup(g);
+  c1.setValue(100);
+  c1.lock();
+  
+}
 
-  c.setWidth(width/2-80);
-
+void setStatStyle(Controller c) {
   // add some padding to the caption label background
+  c.setHeight(15);
+  
+  c.setWidth(width/2-80);
+  
   c.getCaptionLabel().getStyle().setPadding(4, 4, 3, 4);
 
   // shift the caption label up by 4px
@@ -251,6 +258,7 @@ void style(String theControllerName) {
 
 private boolean aimGoNorth, aimGoSouth, aimGoEast, aimGoWest;
 
+NPC npc;
 void keyPressed() {
   if (key == '+' && world.scl < 8) world.scl += 0.1;
   if (key == '-' && world.scl > -8) world.scl -= 0.1;
@@ -268,6 +276,19 @@ void keyPressed() {
     statsWindow.close(); 
     dialogWindow.open(); 
     dialogWindow.bringToFront();
+    Dynamic d = world.player.getNearest();
+    if(d != null && d instanceof NPC){
+      npc = (NPC) d;
+      Controller c1 = dialogWindow.getController("d2");
+      c1.setLabel(npc.name);
+      
+      Toggle c2 = (Toggle) dialogWindow.getController("d3");
+      c2.setValue(npc.following);
+      
+      Toggle c3 = (Toggle) dialogWindow.getController("d5");
+      c3.setValue(npc.debug);
+      
+    }
   }
 
   if (key == 'u' || key == 'U') if (statsWindow.isOpen()) statsWindow.close();
@@ -280,6 +301,21 @@ void keyPressed() {
   if (key == 'i' || key == 'I') if (inventoryWindow.isOpen()) inventoryWindow.close();
   else {
     inventoryWindow.open();
+  }
+}
+
+public void controlEvent(ControlEvent theEvent) {
+  println(theEvent);
+  Controller c = theEvent.getController();
+
+  if(c.getName().equals("d3")){
+    Toggle c2 = (Toggle) c;
+    npc.following = c2.getState();
+  }
+  
+  if(c.getName().equals("d5")){
+    Toggle c2 = (Toggle) c;
+    npc.debug = c2.getState();
   }
 }
 
@@ -347,9 +383,7 @@ void setPressedMovementKeys(boolean b) {
     }
   } else {
     switch (keyCode) {
-    case UP:     
-      aimGoNorth = b; 
-      break;
+    case UP: aimGoNorth = b; break;
     case DOWN:   
       aimGoSouth = b; 
       break;

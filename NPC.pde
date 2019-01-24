@@ -28,17 +28,15 @@ class NPC extends Dynamic{
   //Spawn
   int x, y;
             
-  NPC(int x, int y, int r, String name, boolean following){
+  NPC(int x, int y, int r, String name){
     this.name = name;
     this.x = x;
     this.y = y;
-    this.following = following;
     this.radius = r;
     setupPhysics(x,y);
-    debug = true;
   }
   
-  Body body;
+  
   void setupPhysics(int x, int y){
     makeBody(x, y, radius);
     body.setUserData(this);
