@@ -20,13 +20,21 @@ class NPC extends Dynamic{
   //Character states
   boolean running,crouching,shooting,aiming,following;
   
+  boolean patroling;
+  int prePatrolIndex = 0;
+  int currentPatrolIndex = 1;
+  float currentWaitLeft;
   
   boolean debug;
   float minDist = 50;
 
-  
   //Spawn
   int x, y;
+  
+  float seeingDist = 100;//px
+  float viewAngle = 90;  //degrees
+  
+  ArrayList<PatrolPoint> patrolList = new ArrayList<PatrolPoint>();
             
   NPC(int x, int y, int r, String name){
     this.name = name;
@@ -36,46 +44,73 @@ class NPC extends Dynamic{
     setupPhysics(x,y);
   }
   
-  
   void setupPhysics(int x, int y){
     makeBody(x, y, radius);
     body.setUserData(this);
   }
   
+  boolean firstTimeNewPatrolPointIncounter = true;
   void display() {
-    
     Vec2 pos = world.box2d.getBodyPixelCoord(body);
     Vec2 pp = world.getPlayerPos();
-    if(following){
-      PVector p = new PVector(pp.x,pp.y*-1);
-      float dist = PVector.dist(new PVector(pp.x,pp.y),new PVector(pos.x,pos.y))*2;
-      if(dist > minDist) move(p.sub(new PVector(pos.x,pos.y*-1)));
-      
-      if(debug){
-        stroke(255,0,0);
-        noFill();
-        circle(pos.x,pos.y,dist);
-        stroke(0,255,0);
-        circle(pos.x,pos.y,minDist);
-      } 
+    
+    float dist = 0f;
+    if(!patrolList.isEmpty() && patroling){
+      stroke(255);
+      strokeWeight(5);
+      for(Vec2 v : patrolList){
+        point(v.x,v.y);
+      }
+      strokeWeight(1);
+      PatrolPoint patrolp = patrolList.get(currentPatrolIndex); //<>//
+      if(prePatrolIndex != currentPatrolIndex) {
+        firstTimeNewPatrolPointIncounter = true;
+      } else {
+        firstTimeNewPatrolPointIncounter = false;
+      }
+      if(dist < minDist) prePatrolIndex = currentPatrolIndex; 
+      if(dist < minDist && firstTimeNewPatrolPointIncounter){
+        currentWaitLeft = patrolp.waitTime;
+      }
+      if(dist < minDist){
+        currentWaitLeft -= 0.02;
+      }
+      if(currentWaitLeft <= 0){
+        if(currentPatrolIndex >= patrolList.size()-1){
+          currentPatrolIndex = 0;
+        } else {
+          currentPatrolIndex++;
+        }
+      }
+      dist = goTo(pos,patrolp);
+      pushMatrix();
+        translate(pos.x, pos.y);
+        text(currentWaitLeft,0,20);
+        text(currentPatrolIndex,-10,20);
+      popMatrix();
     }
-    if(!following){ //Waiting, a trader etc
-      PVector p = new PVector(x,y*-1);
-      float dist = PVector.dist(new PVector(x,y),new PVector(pos.x,pos.y))*2;
-      if(dist > minDist) move(p.sub(new PVector(pos.x,pos.y*-1)));
+    if(following && !patroling){
+      dist = goTo(pos,pp);
+    }
+    if(!following && !patroling){ //Waiting, a trader etc
+      dist = goTo(pos,new Vec2(x,y));
       
       if(debug){
         stroke(255);
         strokeWeight(5);
         point(x,y);
         strokeWeight(1);
-        noFill();
+      }
+      
+    }
+    
+    if(debug){
         stroke(255,0,0);
+        noFill();
         circle(pos.x,pos.y,dist);
         stroke(0,255,0);
         circle(pos.x,pos.y,minDist);
-      }
-    }
+    } 
     
     pushMatrix();
       translate(pos.x, pos.y);
@@ -89,7 +124,18 @@ class NPC extends Dynamic{
       fill(255);
       ellipse(0, 0, radius*2, radius*2);
       line(0, 0, radius, 0);
+      if(debug){
+        fill(255,60);
+        arc(0, 0, seeingDist, seeingDist, -radians(viewAngle/2), radians(viewAngle/2), PIE);
+      }
     popMatrix();
+  }
+  
+  float goTo(Vec2 pos, Vec2 target){
+    PVector p = new PVector(target.x,target.y*-1);
+    float dist = PVector.dist(new PVector(target.x,target.y),new PVector(pos.x,pos.y))*2;
+    if(dist > minDist) move(p.sub(new PVector(pos.x,pos.y*-1)));
+    return dist;
   }
   
   
@@ -118,6 +164,12 @@ class NPC extends Dynamic{
   }
   
   void move(PVector p){
+    body.applyForce(new Vec2(p.x,p.y),body.getLocalCenter());
+    body.setAngularVelocity(0);
+  }
+  
+  void move(PVector p, float vel){
+    p.setMag(vel);
     body.applyForce(new Vec2(p.x,p.y),body.getLocalCenter());
     body.setAngularVelocity(0);
   }

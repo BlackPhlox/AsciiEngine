@@ -23,7 +23,14 @@ void setup() {
   createWorld();
   world.player = new Player(100, 100, 5);
   world.dynamics.add(new Item(200, 150, 10, "Gun"));
-  world.dynamics.add(new NPC(120, 120, 5, "James"));
+  
+  
+  NPC npc1 = new NPC(120, 120, 5, "James");
+    npc1.patrolList.add(new PatrolPoint(new Vec2(30,20),5));
+    npc1.patrolList.add(new PatrolPoint(new Vec2(90,20),5));
+    npc1.patrolList.add(new PatrolPoint(new Vec2(80,90),5));
+    npc1.patrolList.add(new PatrolPoint(new Vec2(20,90),5));
+  world.dynamics.add(npc1);
   world.dynamics.add(new NPC(140, 90, 5, "John"));
   world.dynamics.add(new NPC(150, 190, 5, "Jane"));
   smooth(1);
@@ -161,7 +168,7 @@ void setupGUI() {
     ;
   
   cp5.addToggle("d6")
-    .setLabel("Empty")
+    .setLabel("Patrol")
     .setPosition(200, 80)
     .setSize(45, 20)
     .setMode(Toggle.CHECKBOX)
@@ -288,6 +295,8 @@ void keyPressed() {
       Toggle c3 = (Toggle) dialogWindow.getController("d5");
       c3.setValue(npc.debug);
       
+      Toggle c4 = (Toggle) dialogWindow.getController("d6");
+      c3.setValue(npc.patroling);
     }
   }
 
@@ -305,7 +314,7 @@ void keyPressed() {
 }
 
 public void controlEvent(ControlEvent theEvent) {
-  println(theEvent);
+  //println(theEvent);
   Controller c = theEvent.getController();
 
   if(c.getName().equals("d3")){
@@ -316,6 +325,11 @@ public void controlEvent(ControlEvent theEvent) {
   if(c.getName().equals("d5")){
     Toggle c2 = (Toggle) c;
     npc.debug = c2.getState();
+  }
+  
+  if(c.getName().equals("d6")){
+    Toggle c2 = (Toggle) c;
+    npc.patroling = c2.getState();
   }
 }
 
