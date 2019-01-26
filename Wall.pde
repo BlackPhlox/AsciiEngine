@@ -1,4 +1,4 @@
-class Wall extends Static{
+class Wall extends StaticTile{
   // A boundary is a simple rectangle with x,y,width,and height
   int wallWidth;
   int wallHeight;
@@ -16,11 +16,11 @@ class Wall extends Static{
     this.wallWidth = w_;
     this.wallHeight = h_;
     if(w_ > 1 || h_ > 1) {
-      walls = new Wall[w_*h_]; //<>//
+      walls = new Wall[w_*h_]; //<>// //<>//
       for(int i = x_-1; i < wallWidth; i++){
         for(int j = y_-1; j < wallHeight; j++){
           boolean end = (i == wallWidth) || (j == wallHeight);
-          walls[i] = new Wall(world,i,j,end); //<>//
+          walls[i] = new Wall(world,i,j,end); //<>// //<>//
         }
       }
     } 

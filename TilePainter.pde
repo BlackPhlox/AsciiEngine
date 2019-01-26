@@ -14,14 +14,16 @@ class TilePainter{
     
     switch(t){
     //case Type:   drawMethod   (min, max,        p,String or Char,Fade,DescFade 
-      case WALL:   drawCharacter(0,world.layers,  p,t.getChar()   ,true,false) ;break;
+      case WALL:   drawCharacter(0,world.layers,  p,t.getChar()   ,true,true) ;break;
       case TREE:   drawString(   4,               p,t.getIcon()   ,false,false);break;
       case LADDER: drawCharacter(0,world.layers-1,p,t.getChar()   ,false,false);break;
-      case ROOF:   drawRoof(                      p,world.layers)              ;break;
       case FLOOR:  drawCharacter(0,1,             p,t.getChar()   ,false,false);break;
+                                                  //Height
+      case ROOF:   drawRoof(                      p,world.layers              );break;
+      case BLOCK:  drawBox(                       p,10                        );break;
       
       case SQUARE: drawSquare(p);break;
-      case BLOCK:  drawBox(p,10);break;
+      
     }
     
      popMatrix();   
@@ -34,7 +36,7 @@ class TilePainter{
     pushMatrix();
     translate(x*world.gridSize,y*world.gridSize);
     //The custom part
-      drawCharacter(4,world.layers,p,'#',true,false);
+      drawCharacter(4,world.layers,p,'#',true,true);
     popMatrix();   
   }
   
@@ -93,7 +95,6 @@ class TilePainter{
     if(s.length() > 1){
       int sLength = s.length(); 
         for(int i = 0; i < sLength; i++){
-          pushStyle();
           if(fade){
             if(descFade){
               fill(map(i,min,sLength,255,0));
@@ -104,7 +105,6 @@ class TilePainter{
             fill(255);
           }
           if(min <= i) drawTextOffset(s.charAt(i),i,p);
-          popStyle();
       }
     }
   }

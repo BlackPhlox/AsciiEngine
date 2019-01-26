@@ -1,4 +1,4 @@
-class Player{
+class Player extends Unit{
   boolean showMiniMap = false;
   PVector mouseDirection;
   int radius;
@@ -45,7 +45,6 @@ class Player{
     setupPhysics(x,y);
   }
   
-  Body body;
   void setupPhysics(int x, int y){
     makeBody(x, y, radius);
     body.setUserData(this);

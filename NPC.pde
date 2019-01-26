@@ -1,4 +1,4 @@
-class NPC extends Dynamic{
+class NPC extends Unit{
   PVector mouseDirection;
   int radius;
   

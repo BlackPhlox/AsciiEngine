@@ -271,46 +271,47 @@ void keyPressed() {
   if (key == '-' && world.scl > -8) world.scl -= 0.1;
   if (world.player != null) {
     if (key == 'm' || key == 'M') world.player.showMiniMap = !world.player.showMiniMap;
-    if (key == 'k' || key == 'K') world.player.keyBoardAim = !world.player.keyBoardAim;
-  }
-  setPressedMovementKeys(true);
-
-  ControllerGroup dialogWindow = cp5.getGroup("dialogWindow");
-  ControllerGroup inventoryWindow = cp5.getGroup("inventoryWindow");
-  ControllerGroup statsWindow = cp5.getGroup("statsWindow");
-  if (key == 'e' || key == 'E') if (dialogWindow.isOpen()) dialogWindow.close();
-  else {
-    statsWindow.close(); 
-    dialogWindow.open(); 
-    dialogWindow.bringToFront();
-    Dynamic d = world.player.getNearest();
-    if(d != null && d instanceof NPC){
-      npc = (NPC) d;
-      Controller c1 = dialogWindow.getController("d2");
-      c1.setLabel(npc.name);
-      
-      Toggle c2 = (Toggle) dialogWindow.getController("d3");
-      c2.setValue(npc.following);
-      
-      Toggle c3 = (Toggle) dialogWindow.getController("d5");
-      c3.setValue(npc.debug);
-      
-      Toggle c4 = (Toggle) dialogWindow.getController("d6");
-      c3.setValue(npc.patroling);
+    if (key == 'k' || key == 'K') {world.player.keyBoardAim = !world.player.keyBoardAim; world.player.cursor = new PVector(width/2,height/2);}
+    
+    ControllerGroup dialogWindow = cp5.getGroup("dialogWindow");
+    ControllerGroup inventoryWindow = cp5.getGroup("inventoryWindow");
+    ControllerGroup statsWindow = cp5.getGroup("statsWindow");
+    if (key == 'e' || key == 'E') if (dialogWindow.isOpen()) dialogWindow.close();
+    else {
+      statsWindow.close(); 
+      dialogWindow.open(); 
+      dialogWindow.bringToFront();
+      Dynamic d = world.player.getNearest();
+      if(d != null && d instanceof NPC){
+        npc = (NPC) d;
+        Controller c1 = dialogWindow.getController("d2");
+        c1.setLabel(npc.name);
+        
+        Toggle c2 = (Toggle) dialogWindow.getController("d3");
+        c2.setValue(npc.following);
+        
+        Toggle c3 = (Toggle) dialogWindow.getController("d5");
+        c3.setValue(npc.debug);
+        
+        Toggle c4 = (Toggle) dialogWindow.getController("d6");
+        c3.setValue(npc.patroling);
+      }
+    }
+  
+    if (key == 'u' || key == 'U') if (statsWindow.isOpen()) statsWindow.close();
+    else {
+      dialogWindow.close(); 
+      statsWindow.open(); 
+      statsWindow.bringToFront();
+    }
+  
+    if (key == 'i' || key == 'I') if (inventoryWindow.isOpen()) inventoryWindow.close();
+    else {
+      inventoryWindow.open();
     }
   }
-
-  if (key == 'u' || key == 'U') if (statsWindow.isOpen()) statsWindow.close();
-  else {
-    dialogWindow.close(); 
-    statsWindow.open(); 
-    statsWindow.bringToFront();
-  }
-
-  if (key == 'i' || key == 'I') if (inventoryWindow.isOpen()) inventoryWindow.close();
-  else {
-    inventoryWindow.open();
-  }
+  
+  setPressedMovementKeys(true);
 }
 
 public void controlEvent(ControlEvent theEvent) {

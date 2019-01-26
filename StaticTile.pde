@@ -1,8 +1,8 @@
-abstract class Static extends Tile{
+abstract class StaticTile extends Tile{
   // But we also have to make a body for box2d to know about it
   Body b;
   
-  Static(World world,int x, int y){
+  StaticTile(World world,int x, int y){
     super(world,x,y);
     
      int w = world.gridSize;
