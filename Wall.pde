@@ -17,10 +17,10 @@ class Wall extends StaticTile{
     this.wallHeight = h_;
     if(w_ > 1 || h_ > 1) {
       walls = new Wall[w_*h_]; //<>// //<>//
-      for(int i = x_-1; i < wallWidth; i++){
-        for(int j = y_-1; j < wallHeight; j++){
+      for(int i = y_; i < wallHeight; i++){
+        for(int j = x_; j < wallWidth; j++){
           boolean end = (i == wallWidth) || (j == wallHeight);
-          walls[i] = new Wall(world,i,j,end); //<>// //<>//
+          walls[i] = new Wall(world,j,i,end); //<>// //<>//
         }
       }
     } 
@@ -39,14 +39,5 @@ class Wall extends StaticTile{
         sp.drawTile(tileType,x,y);
       } else sp.drawTile(tileType,x,y);
     }
-    drawRect();
   }
-  
-  void drawRect(){
-    noFill();
-    stroke(255);
-    square(x*world.gridSize,y*world.gridSize,world.gridSize);
-  }
-  
-  
 }

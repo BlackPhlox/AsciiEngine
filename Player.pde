@@ -1,4 +1,4 @@
-class Player extends Unit{
+class Player extends Human{
   boolean showMiniMap = false;
   PVector mouseDirection;
   int radius;
@@ -17,7 +17,10 @@ class Player extends Unit{
   float penalty;
   
   //Player states
-  boolean running,crouching,shooting,aiming;
+  boolean running,crouching,shooting,aiming,driving;
+  
+  Vehicle vehicle;
+  PlayerGUI pgui;
   
   //Control interface
   boolean keyBoardAim = false;
@@ -40,7 +43,8 @@ class Player extends Unit{
   
   int bpm = 60;
             
-  Player(int x, int y, int r){
+  Player(PApplet p,int x, int y, int r){
+    pgui = new PlayerGUI(p);
     this.radius = r;
     setupPhysics(x,y);
   }
@@ -51,7 +55,15 @@ class Player extends Unit{
   }
   
   void display() {
-    Vec2 pos = world.box2d.getBodyPixelCoord(body);
+    pgui.updateHeartbeatSensor(); 
+    Vec2 pos;
+    if(driving){
+      if(body.isActive()) body.setActive(false);
+      pos = world.box2d.getBodyPixelCoord(vehicle.body);
+    } else {
+      if(!body.isActive()) body.setActive(true);
+      pos = world.box2d.getBodyPixelCoord(body);
+    }    
     pushMatrix();
       fill(100);
       translate(pos.x, pos.y);
@@ -123,7 +135,7 @@ class Player extends Unit{
     aiming =   (rightPress || playerLessThan ? true : false);
     if(mouseDirection != null){
         float sz = 2;//random(4, 8);
-        Vec2 pp = world.getPlayerPos();
+        Vec2 pp = world.getCameraPos();
         
         mouseZoom = getMouseAimZoom(pp);
         PVector p2 = particlesSpawnPos(pp,mouseDirection);
@@ -138,7 +150,7 @@ class Player extends Unit{
         mouseDirection.setMag(ran);
         
         boolean isBullet = true;
-        if(shooting) world.particles.add(new Particle(p2.x,p2.y,new Vec2(mouseDirection.x*0.5,mouseDirection.y*-1*0.5), sz, isBullet));
+        if(shooting && !driving) world.particles.add(new Particle(p2.x,p2.y,new Vec2(mouseDirection.x*0.5,mouseDirection.y*-1*0.5), sz, isBullet));
         if(mouseDirection != null){
           mouseDirection.setMag(zoom);
           translate(mouseDirection.x*-1,mouseDirection.y*-1);
@@ -167,7 +179,7 @@ class Player extends Unit{
     for(Dynamic d : world.dynamics){
       if(d.body != null /*&& d.getClass() == c  <- Get NullPointer*/){
         PVector v = new PVector(world.box2d.getBodyPixelCoord(d.body).x,world.box2d.getBodyPixelCoord(d.body).y);
-        PVector pp = new PVector(world.getPlayerPos().x,world.getPlayerPos().y);
+        PVector pp = new PVector(world.getCameraPos().x,world.getCameraPos().y);
         if(PVector.dist(v,pp) < nearestDist){
           nearestDist = PVector.dist(v,pp);
           nearest = d;

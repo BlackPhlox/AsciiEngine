@@ -13,17 +13,16 @@ import org.jbox2d.dynamics.*;
 import org.jbox2d.dynamics.contacts.*;
 
 World world;
-ControlP5 cp5;
 int fps = 60;
+boolean isDebugging = true;
 
 void setup() {
   size(600, 600);
   //fullScreen();
-  world = new World(this, 35, 35);
+  world = new World(this, 200, 200);
   createWorld();
-  world.player = new Player(100, 100, 5);
-  world.dynamics.add(new Item(200, 150, 10, "Gun"));
-  
+  world.player = new Player(this,100, 100, 5);
+  world.dynamics.add(new Firearm(200, 150, 10, "AK47", new WeaponSetting()));
   
   NPC npc1 = new NPC(120, 120, 5, "James");
     npc1.patrolList.add(new PatrolPoint(new Vec2(30,20),5));
@@ -33,26 +32,15 @@ void setup() {
   world.dynamics.add(npc1);
   world.dynamics.add(new NPC(140, 90, 5, "John"));
   world.dynamics.add(new NPC(150, 190, 5, "Jane"));
+  world.dynamics.add(new Car(200,200,40,20, Drivetrain.BW));
   smooth(1);
   frameRate(fps);
-  setupGUI();
 }
 
 
 void draw() {
   world.update();
-  drawInfo();
-  updateHeartbeatSensor();
-  
-}
-
-boolean pre;
-void updateHeartbeatSensor(){
-  boolean f = frameCount % round(fps/(world.player.bpm/60)) == 0;
-  heartRateChart.push("incoming", 
-    (f?15:0)+(pre?-0.75:0)*20
-  );
-  if(f) pre = true; else pre = false;
+  if(isDebugging) drawInfo();
 }
 
 void drawInfo() {  
@@ -62,10 +50,10 @@ void drawInfo() {
     line(width/2, 0, width/2, height);
     line(0, height/2, width, height/2);
   }
-  Vec2 pp = world.getPlayerPos();
-  text("Position : "+round(pp.x)+ " " +round(pp.y), 20, height-20);
+  Vec2 cp = world.getCameraPos();
+  text("Position : "+round(cp.x)+ " " +round(cp.y), 20, height-20);
   text("Mouse Pos  : "+(mouseX) + " " + (mouseY), 20, height-60);
-  Vec2 gridPP = world.toGrid(pp);
+  Vec2 gridPP = world.toGrid(cp);
   text("To grid: "+gridPP.x + " " + gridPP.y, 20, height-80);
   text("Zoom lvl: "+ nfc(world.scl, 1), 20, height-100);
 
@@ -87,195 +75,66 @@ void drawInfo() {
 
 void createWorld() {
 
-  for (int y = 0; y < world.h; y++) {
+  /*for (int y = 0; y < world.h; y++) {
     for (int x = 0; x < world.w; x++) {
-      new GhostTile(world, TileType.FLOOR, x, y);
       if (x == 10 && y % 1 == 0)new GhostTile(world, TileType.ROOF, x, y);
-      if (x == 5 && y % 2 == 0) new GhostTile(world, TileType.BLOCK, x, y);
+      if (x == 5 && y % 4 == 0) new GhostTile(world, TileType.BLOCK, x, y);
       if (x == 8 && y % 4 == 0) new GhostTile(world, TileType.TREE, x, y);
       if (x == 20 && y == 8)    new GhostTile(world, TileType.LADDER, x, y);
       if (x == 20 && y == 10)   new GhostTile(world, TileType.SQUARE, x, y);
     }
-  }
-
-
-  //working (kinda)
-  new Wall(world, 1, 1, 34, 1); //x
-  new Wall(world, 1, 1, 1, 34); //y
-  new Wall(world, 1, 35, 20, 35); //w1
-  new Wall(world, 30, 35, 35, 35); //w2
-  new Wall(world, 35, 1, 35, 35); //h
-
-  //new Wall(world,1,15,35,35); //Check performace
-
-  //Supposed to work
-  /*new Wall(world,0,0,35,0);    //w1
-   new Wall(world,35,0,35,35);  //h1
-   
-   new Wall(world,0,35,35,35);  //w2
-   new Wall(world,35,0,0,0);    //h2
-   */
-}
-
-// GUI
-Chart heartRateChart;
-void setupGUI() {
-  cp5 = new ControlP5(this);
-
-  Group dialogWindow = cp5.addGroup("dialogWindow")
-                         .setSize(width/2,height)
-                         .setBackgroundColor(color(200,50))
-                         .close();
-                         
-  cp5.addButton("d1")
-    .setLabel("Dialog")
-    .setPosition(0, 0)
-    .setSize(width/2, 20)
-    .lock()
-    .setGroup(dialogWindow);
-    ;
-
-  cp5.addButton("d2")
-    .setLabel("NPC_NAME")
-    .setPosition(20, 40)
-    .setSize(width/2-40, 20)
-    .lock()
-    .setGroup(dialogWindow);
-    ;
-
-  cp5.addToggle("d3")
-    .setLabel("Follow me")
-    .setPosition(20, 80)
-    .setSize(45, 20)
-    .setMode(Toggle.CHECKBOX)
-    .setGroup(dialogWindow);
-    ;
-
-  cp5.addToggle("d4")
-    .setLabel("Trade")
-    .setPosition(80, 80)
-    .setSize(45, 20)
-    .setMode(Toggle.CHECKBOX)
-    .setGroup(dialogWindow);
-    ; 
-    
-  cp5.addToggle("d5")
-    .setLabel("Debug")
-    .setPosition(140, 80)
-    .setSize(45, 20)
-    .setMode(Toggle.CHECKBOX)
-    .setGroup(dialogWindow);
-    ;
+  }*/
+  WorldBuilder wb = new WorldBuilder(world);
   
-  cp5.addToggle("d6")
-    .setLabel("Patrol")
-    .setPosition(200, 80)
-    .setSize(45, 20)
-    .setMode(Toggle.CHECKBOX)
-    .setGroup(dialogWindow);
-    ; 
-
-  Group inventoryWindow = cp5.addGroup("inventoryWindow")
-                           .setPosition(width-width/2, 0)
-                           .setSize(width/2,height)
-                           .setBackgroundColor(color(200,50))
-                           .close();
-                         
-
-  cp5.addButton("i1")
-    .setLabel("Inventory")
-    .setPosition(0, 0)
-    .setSize(width/2, 20)
-    .lock()
-    .setGroup(inventoryWindow);
-    ;
+  wb.createRoom(28,0,5,5,1,Direction.EAST);
   
-  Group statsWindow = cp5.addGroup("statsWindow")
-                           .setSize(width/2,height)
-                           .setBackgroundColor(color(200,50))
-                           .close();
-
-  heartRateChart = cp5.addChart("heartRate")
-    .setPosition(0, 20)
-    .setSize(width/2-80, 100)
-    .setRange(-20, 20)
-    .setView(Chart.LINE) // use Chart.LINE, Chart.PIE, Chart.AREA, Chart.BAR_CENTERED
-    .setStrokeWeight(1.5)
-    .setColorCaptionLabel(color(40))
-    .setGroup(statsWindow);
-    ;
-    
-  heartRateChart.addDataSet("incoming");
-  heartRateChart.setData("incoming", new float[100]);
+  wb.createRoom(22,0,5,5,1,Direction.NORTH);
   
-  cp5.addButton("b1")
-     .setLabel("Bpm")
-     .setPosition(width/2-80,20)
-     .setSize(80,100)
-     .setGroup(statsWindow);
-     
-  cp5.addButton("s1")
-     .setLabel("Stats")
-     .setPosition(0, 0)
-     .setSize(width/2, 20)
-     .lock()
-     .setGroup(statsWindow)
-     ;
+  wb.createRoom(16,0,5,5,1,Direction.SOUTH);
   
-  Group statGroup = cp5.addGroup("statGroup")
-                      .setGroup(statsWindow)
-                      .setPosition(0,120)
-                      .setSize(width/2,0);
+  wb.createRoom(10,0,5,5,1,Direction.WEST);
   
-  cp5.addSlider("v1", 0, 255)
-    .setPosition(10,10)
-    ;
-
-  addStat("v1","Health",statGroup);
-}
-
-void addStat(String cName, String labelName, Group g){
-  Controller c1 = cp5.getController(cName);
-  c1.setCaptionLabel(labelName);
-  setStatStyle(c1);
-  c1.setColorBackground(color(50,0,0));
-  c1.setColorForeground(color(255,0,0));
-  c1.setGroup(g);
-  c1.setValue(100);
-  c1.lock();
-  
-}
-
-void setStatStyle(Controller c) {
-  // add some padding to the caption label background
-  c.setHeight(15);
-  
-  c.setWidth(width/2-80);
-  
-  c.getCaptionLabel().getStyle().setPadding(4, 4, 3, 4);
-
-  // shift the caption label up by 4px
-  c.getCaptionLabel().getStyle().setMargin(-4, 0, 0, 0); 
-
-  // set the background color of the caption label
-  c.getCaptionLabel().setColorBackground(color(10, 20, 30, 140));
+  wb.createRoom(0,0,5,5,2,Direction.NONE);
 }
 
 // INPUT HANDLING
-
 private boolean aimGoNorth, aimGoSouth, aimGoEast, aimGoWest;
 
 NPC npc;
+Car car;
 void keyPressed() {
+  if (key == 'p' || key == 'P') world.showGrid = !world.showGrid;
+  if (key == 'l' || key == 'L') world.showLine = !world.showLine;
+  if (key == 'n' || key == 'N') world.showWallEdge = !world.showWallEdge;
+  
   if (key == '+' && world.scl < 8) world.scl += 0.1;
   if (key == '-' && world.scl > -8) world.scl -= 0.1;
   if (world.player != null) {
     if (key == 'm' || key == 'M') world.player.showMiniMap = !world.player.showMiniMap;
     if (key == 'k' || key == 'K') {world.player.keyBoardAim = !world.player.keyBoardAim; world.player.cursor = new PVector(width/2,height/2);}
-    
-    ControllerGroup dialogWindow = cp5.getGroup("dialogWindow");
-    ControllerGroup inventoryWindow = cp5.getGroup("inventoryWindow");
-    ControllerGroup statsWindow = cp5.getGroup("statsWindow");
+    if (key == 'f' || key == 'F') {
+      Dynamic d = world.player.getNearest();
+      if(d != null){
+          if(d instanceof Car){
+            if(!world.player.driving){
+              car = (Car) d;
+              car.player = world.player;
+              world.player.vehicle = car;
+              world.player.driving = true;
+            } else {
+              car.player = null;
+              world.player.vehicle = null;
+              world.player.driving = false;
+            }
+          } else if (d instanceof Item){
+            Item item = (Item) d;
+        }
+      }
+    }
+    PlayerGUI pgui = world.player.pgui;
+    ControllerGroup dialogWindow = pgui.cp5.getGroup("dialogWindow");
+    ControllerGroup inventoryWindow = pgui.cp5.getGroup("inventoryWindow");
+    ControllerGroup statsWindow = pgui.cp5.getGroup("statsWindow");
     if (key == 'e' || key == 'E') if (dialogWindow.isOpen()) dialogWindow.close();
     else {
       statsWindow.close(); 
@@ -342,72 +201,34 @@ boolean goNorth, goSouth, goEast, goWest;
 boolean playerSpace, playerShift, playerCtrl, playerLessThan;
 void setPressedMovementKeys(boolean b) {
   switch (key) {
-  case 'W':     
-    goNorth = b; 
-    break;
-  case 'w':     
-    goNorth = b; 
-    break;
-  case 'S':     
-    goSouth = b; 
-    break;
-  case 's':     
-    goSouth = b; 
-    break;
-  case 'A':     
-    goWest  = b; 
-    break;
-  case 'a':     
-    goWest  = b; 
-    break;
-  case 'D':     
-    goEast  = b; 
-    break;
-  case 'd':     
-    goEast  = b; 
-    break;
-  case ' ':     
-    playerSpace   = b; 
-    break;
-  case '<':     
-    playerLessThan= b; 
-    break;
+    case 'W': goNorth = b; break;
+    case 'w': goNorth = b; break;
+    case 'S': goSouth = b; break;
+    case 's': goSouth = b; break;
+    case 'A': goWest  = b; break;
+    case 'a': goWest  = b; break;
+    case 'D': goEast  = b; break;
+    case 'd': goEast  = b; break;
+    case ' ': playerSpace   = b; break;
+    case '<': playerLessThan= b; break;
   }
   switch (keyCode) {
-  case SHIFT:   
-    playerShift = b; 
-    break;
-  case CONTROL: 
-    playerCtrl  = b; 
-    break;
+    case SHIFT: playerShift = b; break;
+    case CONTROL: playerCtrl  = b; break;
   }
   if (world.player != null && !world.player.keyBoardAim) {
     switch (keyCode) {
-    case UP:    
-      goNorth = b; 
-      break;
-    case DOWN:  
-      goSouth = b; 
-      break;
-    case LEFT:  
-      goWest  = b; 
-      break;
-    case RIGHT: 
-      goEast  = b; 
-      break;
+      case UP:    goNorth = b; break;
+      case DOWN:  goSouth = b; break;
+      case LEFT:  goWest  = b; break;
+      case RIGHT: goEast  = b; break;
     }
   } else {
     switch (keyCode) {
-    case UP: aimGoNorth = b; break;
-    case DOWN:   
-      aimGoSouth = b; 
-      break;
-    case LEFT:   
-      aimGoWest  = b; 
-      break;
-    case RIGHT:  
-      aimGoEast  = b; 
-      break;
+      case UP:    aimGoNorth = b; break;
+      case DOWN:  aimGoSouth = b; break;
+      case LEFT:  aimGoWest  = b; break;
+      case RIGHT: aimGoEast  = b; break;
     }
   }
 }
@@ -415,24 +236,14 @@ void setPressedMovementKeys(boolean b) {
 boolean leftPress, centerPress, rightPress;
 void setPressedMouseButtons(boolean b) {
   switch(mouseButton) {
-  case LEFT: 
-    leftPress = b; 
-    break;
-  case CENTER: 
-    centerPress = b; 
-    break;
-  case RIGHT: 
-    rightPress = b; 
-    break;
+  case LEFT:   leftPress = b;   break;
+  case CENTER: centerPress = b; break;
+  case RIGHT:  rightPress = b;  break;
   }
 }
 
 boolean showCenter = false;
 void mousePressed() {
-  //Debug draws (TOGGLE)
-  //showCenter = !showCenter;
-  //world.showGrid = !world.showGrid;
-  //world.showLine = !world.showLine;
   setPressedMouseButtons(true);
 }
 

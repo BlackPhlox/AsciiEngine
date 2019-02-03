@@ -8,6 +8,7 @@ class World{
   
   boolean showGrid;
   boolean showLine;
+  boolean showWallEdge;
   
   Box2DProcessing box2d;
   Player player;
@@ -65,7 +66,7 @@ class World{
   
   void drawWorld(){
     background(0);
-    Vec2 pp = getPlayerPos();
+    Vec2 pp = getCameraPos();
     pushMatrix();
       //Translate for scale in the center
       translate(-(width * (scl - 1) / 2),-(height * (scl - 1) / 2));
@@ -76,18 +77,7 @@ class World{
         if(player != null) player.display();
         displayDynamics();
         displayParticles();
-        displayTiles();
-        TilePainter tp = new TilePainter(world);
-        tp.drawCustom(20,34);
-        tp.drawCustom(21,34);
-        tp.drawCustom(22,34);
-        tp.drawCustom(23,34);
-        tp.drawCustom(24,34);
-        tp.drawCustom(25,34);
-        tp.drawCustom(26,34);
-        tp.drawCustom(27,34);
-        tp.drawCustom(28,34);
-        
+        displayTiles();        
       popMatrix();
     popMatrix();
   }
@@ -186,12 +176,16 @@ class World{
     return new Vec2(round(v.x/gridSize),round(v.y/gridSize));
   }
   
-  Vec2 getPlayerPos(){
+  Vec2 getCameraPos(){
     if(player == null) {
       //No player found, set camera to world position (default is the center of the world)
       PVector p = PVector.sub(new PVector(w*gridSize/2,h*gridSize/2),worldPos);
       return new Vec2(p.x,p.y);
     }
-    return box2d.getBodyPixelCoord(player.body);
+    if(player.vehicle == null){
+      return box2d.getBodyPixelCoord(player.body);
+    } else {
+      return box2d.getBodyPixelCoord(player.vehicle.body);
+    }
   }
 }

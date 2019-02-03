@@ -10,7 +10,7 @@ class TilePainter{
     //p.limit(world.depthDensity);
     pushMatrix();
     translate(x*world.gridSize,y*world.gridSize);
-    drawDebug(p);
+    drawDebug(p, t);
     
     switch(t){
     //case Type:   drawMethod   (min, max,        p,String or Char,Fade,DescFade 
@@ -21,6 +21,7 @@ class TilePainter{
                                                   //Height
       case ROOF:   drawRoof(                      p,world.layers              );break;
       case BLOCK:  drawBox(                       p,10                        );break;
+      case ENTRY:  drawEntry(                     p,4                          );break;
       
       case SQUARE: drawSquare(p);break;
       
@@ -29,19 +30,12 @@ class TilePainter{
      popMatrix();   
   }
   
-  void drawCustom(int x,int y){
-    PVector p = calculateDepthVector(x,y);
-    //Creates a spherical bulge of tiles around the playerPos
-    //p.limit(world.depthDensity);
-    pushMatrix();
-    translate(x*world.gridSize,y*world.gridSize);
-    //The custom part
-      drawCharacter(4,world.layers,p,'#',true,true);
-    popMatrix();   
+  void drawEntry(PVector p, int entranceHeight){
+    drawCharacter(entranceHeight,world.layers,p,'#',true,true);  
   }
   
   PVector calculateDepthVector(int x, int y){
-    Vec2 v = world.getPlayerPos();
+    Vec2 v = world.getCameraPos();
     return PVector.sub(
         new PVector(x*world.gridSize,y*world.gridSize),
         new PVector(v.x,v.y)
@@ -52,7 +46,7 @@ class TilePainter{
     return new PVector(map(layer,0,world.depthDensity,0,depthVector.x),map(layer,0,world.depthDensity,0,depthVector.y));
   }
   
-  void drawDebug(PVector p){
+  void drawDebug(PVector p, TileType t){
     if(world.showGrid){
       pushStyle();
       stroke(255,20);
@@ -62,6 +56,11 @@ class TilePainter{
     }
     if(world.showLine){
       line(0,0,p.x,p.y);
+    }
+    if(world.showWallEdge && t == TileType.WALL){
+      noFill();
+      stroke(255);
+      square(0,0,world.gridSize);
     }
   }
   
@@ -83,12 +82,17 @@ class TilePainter{
     rect(bottom.x,bottom.y,world.gridSize,world.gridSize);
     PVector top = calculateLayerPos(boxHeight,p);
     float size = world.gridSize/2;
+    float topSize = (0.82*boxHeight+12.35)/2;
     stroke(255);
-    line(bottom.x-size,bottom.y-size,top.x-size,top.y-size);
-    line(bottom.x+size,bottom.y-size,top.x+size,top.y-size);
-    line(bottom.x-size,bottom.y+size,top.x-size,top.y+size);
-    line(bottom.x+size,bottom.y+size,top.x+size,top.y+size);
-    square(top.x,top.y,world.gridSize);//size should use depthDensity
+    line(bottom.x-size,bottom.y-size,top.x-topSize,top.y-topSize);
+    line(bottom.x+size,bottom.y-size,top.x+topSize,top.y-topSize);
+    line(bottom.x-size,bottom.y+size,top.x-topSize,top.y+topSize);
+    line(bottom.x+size,bottom.y+size,top.x+topSize,top.y+topSize);
+    //float s = map(boxHeight,0,world.depthDensity,0,p.x);
+    pushStyle();
+    stroke(0);
+    square(top.x,top.y,topSize*2);//size should use depthDensity
+    popStyle();  //x8 y20 //x15 y24 //x37 y42 //x70 y70 //x32 y38
   }
   
   private void drawString(int min, PVector p, String s, boolean fade, boolean descFade){

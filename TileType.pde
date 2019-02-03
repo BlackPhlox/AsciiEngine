@@ -9,6 +9,8 @@ enum TileType{
   FLOOR("."),
   ROOF("R"),
   
+  ENTRY(""),
+  
   
   BLOCK(DrawType.BOX),
   

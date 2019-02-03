@@ -1,5 +1,4 @@
 class Item extends Dynamic{
-  Body body;
   String name;
   String disc;
   int r;

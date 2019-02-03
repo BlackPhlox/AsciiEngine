@@ -1,4 +1,4 @@
-class NPC extends Unit{
+class NPC extends Human{
   PVector mouseDirection;
   int radius;
   
@@ -52,7 +52,7 @@ class NPC extends Unit{
   boolean firstTimeNewPatrolPointIncounter = true;
   void display() {
     Vec2 pos = world.box2d.getBodyPixelCoord(body);
-    Vec2 pp = world.getPlayerPos();
+    Vec2 pp = world.getCameraPos();
     
     float dist = 0f;
     if(!patrolList.isEmpty() && patroling){
@@ -119,7 +119,7 @@ class NPC extends Unit{
       fill(255);
       text(name,-textWidth(name)/2,-radius);
       //Calc mouseDirection
-      mouseDirection = PVector.sub(new PVector(world.getPlayerPos().x,world.getPlayerPos().y),new PVector(pos.x,pos.y));
+      mouseDirection = PVector.sub(new PVector(world.getCameraPos().x,world.getCameraPos().y),new PVector(pos.x,pos.y));
       rotate(mouseDirection.heading());
       fill(255);
       ellipse(0, 0, radius*2, radius*2);
@@ -185,7 +185,7 @@ class NPC extends Unit{
     aiming =   (rightPress || playerLessThan ? true : false);
     if(mouseDirection != null){
         float sz = 2;//random(4, 8);
-        Vec2 pp = world.getPlayerPos();
+        Vec2 pp = world.getCameraPos();
         
         PVector p2 = particlesSpawnPos(pp,mouseDirection);
         
